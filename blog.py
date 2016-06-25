@@ -16,7 +16,7 @@ from google.appengine.ext import ndb
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True)
-jinja_env.globals['url_for'] = webapp2.uri_for
+# set global variable session for template session data accessibility.
 jinja_env.globals['session'] = {}
 
 # Cookie securing functionality
@@ -114,9 +114,9 @@ class BlogHandler(webapp2.RequestHandler):
         if not user:
             jinja_env.globals['session'] = {}
         else:
-            jinja_env.globals['session'] = { 'id': user.key.id(),
-                                         'username' : user.username, 
-                                         'email' : user.email }
+            jinja_env.globals['session'].update({ 'id': user.key.id(),
+                                                    'username' : user.username, 
+                                                    'email' : user.email })
 
 def render_post(response, post):
     response.out.write('<b>' + post.subject + '</b><br>')
@@ -141,6 +141,8 @@ class Post(ndb.Model):
     created = ndb.DateTimeProperty(auto_now_add = True)
     creator = ndb.StringProperty(required = True)
     last_modified = ndb.DateTimeProperty(auto_now = True)
+    likes = ndb.IntegerProperty(default=0)
+    comments = ndb.StringProperty(repeated=True)
 
     @classmethod
     def query_post(cls, ancestor_key):
@@ -207,6 +209,9 @@ class User(ndb.Model):
     username = ndb.StringProperty(required=True)
     pass_hash = ndb.StringProperty(required=True)
     email = ndb.StringProperty(required=True)
+    liked_post_keys = ndb.StringProperty(repeated=True)
+    followed_user_keys = ndb.StringProperty(repeated=True)
+    followers = ndb.IntegerProperty(default=0)
 
     @classmethod
     def new_user(cls, username, password, email):
@@ -232,7 +237,10 @@ class User(ndb.Model):
 class BlogFront(BlogHandler):
     def get(self):
         posts = ndb.gql("select * from Post order by created desc limit 10")
-        self.render('front.html', posts = posts)
+        notification = jinja_env.globals['session'].get('notification')
+        # reset the session notification global value to None.
+        jinja_env.globals['session']['notification'] = None    
+        self.render('front.html', posts = posts, notification=notification)
 
 class PostPage(BlogHandler):
     def get(self, post_id):
@@ -290,19 +298,23 @@ class EditPost(BlogHandler):
             self.redirect("/login")
 
     def post(self, post_id):
-        if self.user:
-            post = ndb.Key(Post, int(post_id), parent=self.user.key).get()
-            if self.user.username == post.creator:
-                delete_request = self.request.get('deletePost')
-                if delete_request == "yes":
-                    post.key.delete()
-                    self.redirect("/blog")
-                elif delete_request == "no":
-                    self.redirect("/blog/{0}".format(str(post_id)))
-                else:
-                    self.redirect("/blog/{0}".format(str(post_id)))
+        post = ndb.Key(Post, int(post_id), parent=self.user.key).get()
+        if not post:
+            self.error(404)
+            return
+        if self.user and self.user.username == post.creator:
+            edit_request = self.request.get('editPost')
+            if edit_request == "accept":
+                new_subject = self.request.get('subject')
+                new_content = self.request.get('content-area')
+                post.subject = str(new_subject)
+                post.content = str(new_content)
+                post.put()
+                jinja_env.globals['session']['notification'] = ("Your blog post has been "
+                                                                "successfully updated.")
+                self.redirect("/blog")
             else:
-                self.redirect("/login")
+                self.redirect("/blog/{0}".format(str(post_id)))
         else:
             self.redirect("/login")
 
@@ -314,8 +326,7 @@ class DeletePost(BlogHandler):
             if self.user.username == post.creator:
                 self.render('deletepost.html', post=post)
             else:
-                error = "You must be the post owner in order to delete!"
-                self.redirect("/blog/{0}".format(str(post_id)))
+                self.redirect("/blog")
         else:
             self.redirect("/login")
 
@@ -326,6 +337,7 @@ class DeletePost(BlogHandler):
                 delete_request = self.request.get('deletePost')
                 if delete_request == "yes":
                     post.key.delete()
+                    jinja_env.globals['session']['notification'] = "Your blog post has been successfully deleted."
                     self.redirect("/blog")
                 elif delete_request == "no":
                     self.redirect("/blog/{0}".format(str(post_id)))
@@ -440,7 +452,7 @@ class Login(BlogHandler):
                 params['error_password'] = "The password you entered was incorrect."
 
         if have_error:
-            self.render('user-login.html', **params)
+            self.render('login.html', **params)
         else:
             # simulate login by setting the user_id cookie to the users id and redirect to welcome.
             # self.set_cookie('user_id', str(user.key.id()))

@@ -21,8 +21,17 @@
 </div>
 
 
-<div class="container" id="startPosts">
+<div class="container" id="startPosts" id="notification-box">
   <br>
+  {% if notification %}
+  <div class="error row">
+      <div class="col s12 m5">
+        <div class="card-panel blue">
+          <span class="white-text"><h5>{{ notification }}<h5></span>
+        </div>
+      </div>
+    </div>
+    {% endif %}
   <br>
   <br>
   <br>
