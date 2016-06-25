@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "navbar.html" %}
+
+<div id="index-banner" class="parallax-container valign-wrapper">
+    <div class="section no-pad-bot">
+      <div class="container valign">
+        <br><br>
+        <h1 class="header center white-text text-darken-2"><i>{{ post.subject }}<i></h1>
+        <div class="row center">
+          <h5 class="header col s12 light white-text text-darken-2"><u>{{post.created.strftime("%b %d, %Y")}} | Published by {{ post.creator }}</u></h5>
+        </div>
+        <div class="row center">
+          <a href="#startPosts" class="btn-floating btn-large waves-effect waves-light blue darken-2 head-link"><i class="fa fa-angle-double-down"></i></a>
+        </div>
+        <br><br>
+
+      </div>
+    </div>
+    <div class="parallax"><img src="/static/images/road.jpg" alt="Unsplashed background img 2"></div>
+</div>
+
+
+<div class="container" id="startPosts">
+  <br>
+  <div class="row align-left">
+        <div class="col s12 m10 offset-m1 l9 offset-l1">
+            <a class="waves-effect tooltipped waves-light btn-floating green" data-position="bottom" data-delay="50" data-tooltip="Like this post"><i class="material-icons left" >thumb_up</i></a>
+            <a class="waves-effect tooltipped waves-light btn-floating red" data-position="bottom" data-delay="50" data-tooltip="Dislike this post"><i class="material-icons left">thumb_down</i></a>
+            <a class="waves-effect tooltipped waves-light btn-floating orange" data-position="bottom" data-delay="50" data-tooltip="Follow {{ post.creator }}"><i class="material-icons left">library_add</i></a>
+        </div>
+  </div>
+  <br>
+  <div class="row">
+    <div class="col s12 m10 offset-m1 l9 offset-l1">
+      <p>{{post.content | safe }}</p> 
+      <br>
+      <a class="btn-floating tooltipped btn waves-effect waves-light blue" data-position="bottom" data-delay="50" data-tooltip="Comment on this post"><i class="material-icons">chat_bubble_outline</i></a>
+
+      <div class="right">
+      <a class="btn-floating tooltipped btn waves-effect waves-light orange" href="/blog/{{ post.key.id() }}/edit" data-position="bottom" data-delay="50" data-tooltip="Edit post"><i class="material-icons">mode_edit</i></a>
+
+      <a class="btn-floating tooltipped btn waves-effect waves-light red" href="/blog/{{ post.key.id() }}/delete" data-position="bottom" data-delay="50" data-tooltip="Delete post"><i class="material-icons">delete</i></a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% include "footer.html" %}
+{% endblock %}

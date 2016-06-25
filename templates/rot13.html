@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Rot 13 word translator</h2>
+
+    <form method="post">
+      <label>
+        <div>Your text</div>
+        <textarea name="text">{{text}}</textarea>
+      </label>
+
+      <input type="submit">
+    </form>
+{% endblock %}

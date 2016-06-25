@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "navbar.html" %}
+<main>
+<div class="container">  
+  <h2>edit post</h2>
+
+    <form method="post">
+      <label>
+        <div>subject</div>
+        <input type="text" name="subject" value="{{post.subject}}">
+      </label>
+
+      <label>
+        <div>blog</div>
+        <textarea name="content">{{post.content}}</textarea>
+      </label>
+
+      <div class="error">{{error}}</div>
+
+      <input type="submit">
+    </form>
+</div>
+</main>
+{% include "footer.html" %}
+{% endblock %}

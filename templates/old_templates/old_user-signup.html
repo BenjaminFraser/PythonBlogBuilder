@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="A front-end template that helps you build fast, modern mobile web apps.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <title>The Big Boruku Signup</title>
+
+    <!-- Add to homescreen for Chrome on Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" sizes="192x192" href="static/images/android-desktop.png">
+
+    <!-- Add to homescreen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Material Design Lite">
+    <link rel="apple-touch-icon-precomposed" href="static/images/ios-desktop.png">
+
+    <!-- Tile icon for Win8 (144x144 + tile color) -->
+    <meta name="msapplication-TileImage" content="static/images/touch/ms-touch-icon-144x144-precomposed.png">
+    <meta name="msapplication-TileColor" content="#3372DF">
+
+    <link rel="shortcut icon" href="static/images/favicon.png">
+
+    <!-- SEO: If your mobile URL is different from the desktop URL, add a canonical link to the desktop page https://developers.google.com/webmasters/smartphone-sites/feature-phones -->
+    <!--
+    <link rel="canonical" href="http://www.example.com/">
+    -->
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+    <!--Import materialize.css-->
+    <link type="text/css" rel="stylesheet" href="static/css/materialize.min.css"  media="screen,projection"/>
+
+    <link rel="stylesheet" href="static/css/footer-distributed.css">
+  
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+    
+  </head>
+
+  <body>
+    <!--Navbar -->
+    <div class="navbar-fixed">
+    <nav class="blue">
+        <div class="nav-wrapper container">
+            <a href="#!" class="brand-logo"><i class="material-icons left">comment</i>&nbsp;The Big Borogu</a>
+            <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">reorder</i></a>
+            <ul class="right hide-on-med-and-down">
+                <li><a href="#modalLogin" class="modal-trigger"><i class="material-icons left">perm_identity</i>Login</a></li>
+                <li><a href="#"><i class="material-icons left">supervisor_account</i>Register</a></li>
+                <li><a href="#"><i class="material-icons left">live_help</i>Help</a></li>
+            </ul>
+            <ul class="side-nav" id="mobile-demo">
+                <li>
+                    <a href="#">
+                        <input id="search" type="search" placeholder="search">
+                    </a>
+                </li>
+                <li><a href="#">Link</a></li>
+                <li><a href="#">Link</a></li>
+                <li><a href="#">Link</a></li>
+                <li><a href="#">Link</a></li>
+            </ul>
+        </div>
+    </nav>
+    </div>
+    <!-- Navbar end-->
+
+    <!--login modal for navbar-->
+    <div id="modalLogin" class="modal">
+        <div class="modal-content">
+            <h2 class="center-align">Login to your account</h2>
+            <div class="container">
+                <div class="divider"></div>
+                <form class="col s12">
+                    <div class="row">
+                        <div class="input-field col m10 offset-m1 blue-text">
+                            <i class="material-icons prefix">perm_identity</i>
+                            <input id="icon_prefix" type="text" class="validate">
+                            <label for="icon_prefix">Username</label>
+                        </div>
+                        <div class="input-field col m10 offset-m1 blue-text ">
+                            <i class="material-icons prefix">lock_open</i>
+                            <input id="icon_password" type="password" class="validate">
+                            <label for="icon_password">Password</label>
+                        </div>
+                        <div class="input-field col m10 offset-m1 blue-text">
+                            <input type="checkbox" class="blue-text" id="filled-in-box" checked="checked">
+                            <label for="filled-in-box">Remember me next time</label>
+                        </div>
+                    </div>
+                </form>
+                <div class="divider"></div>
+                <p class="center-align">
+                    <a href="#" class="btn btn-flat white modal-close">Cancel</a> &nbsp;
+                    <a href="#" class="waves-effect waves-blue blue btn btn-flat modal-action modal-close">Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+        <main>
+          <div class="container">
+              <div class="row">
+                  <div class="col m12">
+                      <h2 class="center-align">Create an account</h2>
+                        <h4 class="center-align">Enter your details below</h4>
+                          <div class="row">
+                            <form method="post" class="col s12">
+                                <div class="row">
+                                    <div class="input-field col s8 offset-s2">
+                                        <input id="signup-username" type="text" class="validate" name="username" value="{{username}}">
+                                        <label for="signup-username">Username</label>
+                                    </div>
+                                    <div class="col s2 error-field" style="font-size: 0.8em; color: red;">
+                                      {{error_username}}
+                                      {{error_name_taken}}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="input-field col s8 offset-s2">
+                                        <input id="signup-password" type="password" class="validate" name="password">
+                                        <label for="signup-password">Password</label>
+                                    </div>
+                                    <div class="col s2 error-field" style="font-size: 0.8em; color: red;">
+                                      {{error_password}}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="input-field col s8 offset-s2">
+                                        <input id="signup-pass-ver" type="password" class="validate" name="verify">
+                                        <label for="signup-pass-ver">Verify Password</label>
+                                    </div>
+                                    <div class="col s2 error-field" style="font-size: 0.8em; color: red;">
+                                      {{error_verify}}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="input-field col s8 offset-s2">
+                                        <input id="signup-email" type="email" class="validate" name="email" value="{{email}}">
+                                        <label for="signup-email" data-error="Invalid - email must be of the correct format">Email</label>
+                                    </div>
+                                    <div class="col s2 error-field" style="font-size: 0.8em; color: red;">
+                                      {{error_name}}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col s8 offset-s2">
+                                        <p>
+                                            <input type="checkbox" id="remember">
+                                            <label for="remember">Remember me</label>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="divider"></div>
+                                <div class="row">
+                                    <div class="col m12">
+                                        <p class="center-align">
+                                            <button class="btn btn-large waves-effect waves-light" type="submit" name="action">Login</button>
+                                        </p>
+                                    </div>
+                                </div>
+                            </form>
+                      </div>
+                  </div>
+              </div>
+          </div>
+        </main>
+        <footer class="footer-distributed">
+
+      <div class="footer-right">
+
+        <a href="#"><i class="fa fa-facebook"></i></a>
+        <a href="#"><i class="fa fa-twitter"></i></a>
+        <a href="#"><i class="fa fa-linkedin"></i></a>
+        <a href="#"><i class="fa fa-github"></i></a>
+
+      </div>
+
+      <div class="footer-left">
+
+        <p class="footer-links">
+          <a href="#">Home</a>
+          ·
+          <a href="#">About</a>
+          ·
+          <a href="#">Faq</a>
+          ·
+          <a href="#">Contact</a>
+        </p>
+
+        <p>The Big Boruku &copy; 2016</p>
+      </div>
+
+    </footer>
+  <div class="mdl-layout__obfuscator"></div>
+
+  <!--Import jQuery before materialize.js-->
+  <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="static/js/materialize.min.js"></script>
+  <script type="text/javascript">
+    $(".button-collapse").sideNav();
+    $('.modal-trigger').leanModal();
+    $('#aside').pushpin({ top:110, bottom:500 });
+  </script>
+  </body> 
+</html>

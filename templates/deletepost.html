@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "navbar.html" %}
+
+<div id="index-banner" class="parallax-container valign-wrapper">
+    <div class="section no-pad-bot">
+      <div class="container valign">
+        <br><br>
+        <div class="row center">
+          <h2 class="header col s12 light white-text text-darken-2">Are you sure you wish to delete this post?</h2>
+        </div>
+        <div class="row center">
+        <form action="/blog/{{ post.key.id() }}/delete" method="POST">
+          <input type="submit" name="deletePost" value="yes" class="btn btn-large waves-effect waves-light red darken-2"/>
+          <input type="submit" name="deletePost" value="no" class="btn btn-large waves-effect waves-light grey darken-2"/>
+        </form>
+        </div>
+        <br><br>
+
+      </div>
+    </div>
+    <div class="parallax"><img src="/static/images/road.jpg" alt="Unsplashed background img 2"></div>
+</div>
+
+{% include "footer.html" %}
+{% endblock %}

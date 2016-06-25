@@ -1,0 +1,68 @@
+    <!--Navbar -->
+    <div class="navbar-fixed">
+    <nav class="blue darken-2">
+        <div class="nav-wrapper container">
+            <a href="/" class="brand-logo"><i class="material-icons left">comment</i>&nbsp;The Big Borogu</a>
+            <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">reorder</i></a>
+            <ul class="right hide-on-med-and-down">
+                {% if session['username'] %}
+                <li><a class='dropdown-button' data-beloworigin="true" constrainwidth="false" href='#' data-activates='dropdown1'><i class="material-icons left">view_list</i>Hello {{ session['username'] }}</a></li>
+                <!-- Dropdown Structure -->
+                <ul id='dropdown1' class='dropdown-content'>
+                    <li><a class="blue darken-2 white-text" href="#"><i class="material-icons left">message</i>Your Posts</a></li>
+                    <li><a class="blue darken-2 white-text" href="#"><i class="material-icons left">supervisor_account</i>Your Account</a></li>
+                </ul>
+                <li><a href="/logout"><i class="material-icons left">settings_power</i>Logout</a></li>
+                {% else %}
+                <li><a href="#modalLogin" class="modal-trigger"><i class="material-icons left">perm_identity</i>Login</a></li>
+                <li><a href="/signup"><i class="material-icons left">supervisor_account</i>Register</a></li>
+                <li><a href="#"><i class="material-icons left">live_help</i>Help</a></li>
+                {% endif %}
+            </ul>
+            <ul class="side-nav blue" id="mobile-demo">
+                <li>
+                    <a href="#">
+                        <input class="white-text" id="search" type="search" placeholder="search">
+                    </a>
+                </li>
+                <li><a href="#modalLogin" class="modal-trigger white-text"><i class="material-icons left">perm_identity</i>Login</a></li>
+                <li><a href="/signup" class="white-text"><i class="material-icons left">supervisor_account</i>Register</a></li>
+                <li><a href="#" class="white-text"><i class="material-icons left">live_help</i>Help</a></li>
+            </ul>
+        </div>
+    </nav>
+    </div>
+    <!-- Navbar end-->
+
+    <!--login modal for navbar-->
+    <div id="modalLogin" class="modal">
+        <div class="modal-content">
+            <h2 class="center-align">Login to your account</h2>
+            <div class="container">
+                <div class="divider"></div>
+                <form class="col s12" action="/login" method="POST">
+                    <div class="row">
+                        <div class="input-field col m10 offset-m1 blue-text">
+                            <i class="material-icons prefix">perm_identity</i>
+                            <input id="icon_prefix" type="text" class="validate" name="username">
+                            <label for="icon_prefix">Username</label>
+                        </div>
+                        <div class="input-field col m10 offset-m1 blue-text ">
+                            <i class="material-icons prefix">lock_open</i>
+                            <input id="icon_password" type="password" class="validate" name="password">
+                            <label for="icon_password">Password</label>
+                        </div>
+                        <div class="input-field col m10 offset-m1 blue-text">
+                            <input type="checkbox" class="blue-text" id="filled-in-box" checked="checked">
+                            <label for="filled-in-box">Remember me next time</label>
+                        </div>
+                    </div>
+                <div class="divider"></div>
+                <p class="center-align">
+                    <a href="#" class="btn btn-flat white modal-close">Cancel</a> &nbsp;
+                    <button class="btn btn-large waves-effect waves-light" type="submit" name="action">Login</button>
+                </p>
+                </form>
+            </div>
+        </div>
+    </div>
