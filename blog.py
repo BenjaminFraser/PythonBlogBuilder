@@ -141,7 +141,7 @@ class Post(ndb.Model):
     created = ndb.DateTimeProperty(auto_now_add = True)
     creator = ndb.StringProperty(required = True)
     last_modified = ndb.DateTimeProperty(auto_now = True)
-    likes = ndb.IntegerProperty(default=0)
+    user_like_keys = ndb.StringProperty(repeated=True)
     comments = ndb.StringProperty(repeated=True)
 
     @classmethod
@@ -243,15 +243,16 @@ class BlogFront(BlogHandler):
         self.render('front.html', posts = posts, notification=notification)
 
 class PostPage(BlogHandler):
-    def get(self, post_id):
-        key = ndb.Key('Post', int(post_id), parent=self.user.key)
-        post = key.get()
-
+    def get(self, urlsafe_postkey):
+        post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
         if not post:
             self.error(404)
             return
-
-        self.render("permalink.html", post = post)
+        if self.user and self.user.username == post.creator:
+            creator=True
+            self.render("permalink.html", post = post, creator=creator)
+        else:
+            self.render("permalink.html", post = post, creator=False)
 
 class UserPosts(BlogHandler):
     """Displays all of a users created posts."""
@@ -278,27 +279,27 @@ class NewPost(BlogHandler):
             p = Post(parent=self.user.key, subject = subject, 
                         content = content, creator = self.user.username)
             p.put()
-            # access the created entities key via p.key().id()
-            self.redirect('/blog/%s' % str(p.key.id()))
+            # create a urlsafe version of the key and pass into URL.
+            self.redirect('/blog/%s' % str(p.key.urlsafe()))
         else:
             error = "You need to fill in both subject and content! Duh!"
             self.render("newpost.html", subject=subject, content=content, error=error)
 
 #exceptions to be added to this class.
 class EditPost(BlogHandler):
-    def get(self, post_id):
+    def get(self, urlsafe_postkey):
         if self.user:
-            post = ndb.Key(Post, int(post_id), parent=self.user.key).get()
+            post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
             if self.user.username == post.creator:
                 self.render('editpost.html', post=post)
             else:
                 error = "You must be the post owner in order to edit!"
-                self.redirect("/blog/{0}".format(str(post_id)))
+                self.redirect("/blog/{0}".format(str(urlsafe_postkey)))
         else:
             self.redirect("/login")
 
-    def post(self, post_id):
-        post = ndb.Key(Post, int(post_id), parent=self.user.key).get()
+    def post(self, urlsafe_postkey):
+        post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
         if not post:
             self.error(404)
             return
@@ -314,15 +315,15 @@ class EditPost(BlogHandler):
                                                                 "successfully updated.")
                 self.redirect("/blog")
             else:
-                self.redirect("/blog/{0}".format(str(post_id)))
+                self.redirect("/blog/{0}".format(str(urlsafe_postkey)))
         else:
             self.redirect("/login")
 
 # exceptions to be added to this class
 class DeletePost(BlogHandler):
-    def get(self, post_id):
+    def get(self, urlsafe_postkey):
         if self.user:
-            post = ndb.Key(Post, int(post_id), parent=self.user.key).get()
+            post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
             if self.user.username == post.creator:
                 self.render('deletepost.html', post=post)
             else:
@@ -330,9 +331,9 @@ class DeletePost(BlogHandler):
         else:
             self.redirect("/login")
 
-    def post(self, post_id):
+    def post(self, urlsafe_postkey):
         if self.user:
-            post = ndb.Key(Post, int(post_id), parent=self.user.key).get()
+            post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
             if self.user.username == post.creator:
                 delete_request = self.request.get('deletePost')
                 if delete_request == "yes":
@@ -517,11 +518,11 @@ app = webapp2.WSGIApplication([('/', MainPage),
                                ('/blog/?', BlogFront),
                                # blog individual page, using int regular expression for post id.
                                # Within handler urls, we pass in parameters using parenthesis (parameter).
-                               ('/blog/([0-9]+)', PostPage),
+                               ('/blog/([a-zA-Z0-9-_]+)', PostPage),
                                ('/blog/newpost', NewPost),
                                ('/blog/user/([0-9]+)', UserPosts),
-                               ('/blog/([0-9]+)/edit', EditPost),
-                               ('/blog/([0-9]+)/delete', DeletePost),
+                               ('/blog/([a-zA-Z0-9-_]+)/edit', EditPost),
+                               ('/blog/([a-zA-Z0-9-_]+)/delete', DeletePost),
                                ],
                               debug=True)
 

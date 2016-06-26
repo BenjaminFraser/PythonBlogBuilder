@@ -10,7 +10,7 @@
           <h2 class="header col s12 light white-text text-darken-2">Are you sure you wish to delete this post?</h2>
         </div>
         <div class="row center">
-        <form action="/blog/{{ post.key.id() }}/delete" method="post">
+        <form action="/blog/{{ post.key.urlsafe() }}/delete" method="post">
           <input type="submit" name="deletePost" value="yes" class="btn btn-large waves-effect waves-light red darken-2"/>
           <input type="submit" name="deletePost" value="no" class="btn btn-large waves-effect waves-light grey darken-2"/>
         </form>
