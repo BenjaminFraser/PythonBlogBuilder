@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "navbar.html" %}
+<main>
+  <div class="container" id="blogpost-zone">
+      <div class="row center">
+              <h1>New post</h1>
+              <h4 class="header col s12 light black-text">By {{ session['username'] }}</h4>
+      </div> 
+    <div class="row">
+        <form class="col s12" method="post">
+          <div class="row">
+            <div class="input-field col s12">
+              <input id="subject-field" type="text" name="subject" value="{{subject}}"/>
+              <label for="subject">Subject</label>
+            </div> 
+            <div class ="input-field col s12">
+              <textarea id="content-field" class="materialize-textarea" name="content">{{content}}</textarea>
+              <label for="content">Blog content</label>
+            </div>
+            <div class="error">
+              <p class="red-text">{{ error }}</p>
+            </div>
+          </div>
+          <div class="divider"></div>
+            <div class="row">
+              <div class="col m12">
+                <p class="center-align">
+                  <input type="submit" class="btn btn-large waves-effect waves-light green" name="editPost" value="create"/>
+                  <a href="/blog" class="btn btn-large waves-effect waves-light grey" name="cancel" value="cancel">Cancel</a>
+                </p>
+              </div>
+            </div>
+        </form>
+    </div>
+  </div>
+</main>
+{% include "footer.html" %}
+{% endblock %}
+

@@ -48,9 +48,6 @@
     {% block content %}
     {% endblock %}
         
-
-  <div class="mdl-layout__obfuscator"></div>
-
   <!--Document Scripts -->
   <script type="text/javascript" script-name="alex-brush" src="http://use.edgefonts.net/alex-brush.js"></script>
   <script type="text/javascript" script-name="carter-one" src="http://use.edgefonts.net/carter-one.js"></script>
@@ -63,32 +60,31 @@
     $('#aside').pushpin({ top:110, bottom:500 });
   </script>
   <script>
-  $(document).ready(function(){
-    $('.materialboxed').materialbox();
-     $('.parallax').parallax();
-      $('.button-collapse').sideNav();
-  });
+      $(document).ready(function(){
+        $('.materialboxed').materialbox();
+         $('.parallax').parallax();
+          $('.button-collapse').sideNav();
+      });
 
-  $('.dropdown-button').dropdown({
-      inDuration: 300,
-      outDuration: 225,
-      constrain_width: false, // Does not change width of dropdown to that of the activator
-      hover: true, // Activate on hover
-      gutter: 0, // Spacing from edge
-      belowOrigin: true, // Displays dropdown below the button
-      alignment: 'left' // Displays dropdown with edge aligned to the left of button
-    }
-  );
-  </script>
-  <script>
-        $('.head-link').click(function(e) {
+      $('.dropdown-button').dropdown({
+          inDuration: 300,
+          outDuration: 225,
+          constrain_width: false, // Does not change width of dropdown to that of the activator
+          hover: true, // Activate on hover
+          gutter: 0, // Spacing from edge
+          belowOrigin: true, // Displays dropdown below the button
+          alignment: 'left' // Displays dropdown with edge aligned to the left of button
+        }
+      );
+      
+      $('.head-link').click(function(e) {
         e.preventDefault();
         
         var goto = $(this).attr('href');
         $('html, body').animate({
             scrollTop: $(goto).offset().top
         }, 800);
-    });
+      });
   </script>
   </body> 
 </html>

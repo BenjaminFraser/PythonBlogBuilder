@@ -9,8 +9,9 @@
                 <li><a class='dropdown-button' data-beloworigin="true" constrainwidth="false" href='#' data-activates='dropdown1'><i class="material-icons left">view_list</i>Hello {{ session['username'] }}</a></li>
                 <!-- Dropdown Structure -->
                 <ul id='dropdown1' class='dropdown-content'>
-                    <li><a class="blue darken-2 white-text" href="#"><i class="material-icons left">message</i>Your Posts</a></li>
-                    <li><a class="blue darken-2 white-text" href="#"><i class="material-icons left">supervisor_account</i>Your Account</a></li>
+                    <li><a class="blue darken-2 white-text waves-effect" href="#"><i class="material-icons left">message</i>Your Posts</a></li>
+                    <li><a class="blue darken-2 white-text waves-effect" href="#"><i class="material-icons left">supervisor_account</i>Your Account</a></li>
+                    <li><a class="blue darken-2 white-text waves-effect" href="/user/{{ session['id'] }}/newpost"><i class="material-icons left">mode_edit</i>New Post</a></li>
                 </ul>
                 <li><a href="/logout"><i class="material-icons left">settings_power</i>Logout</a></li>
                 {% else %}

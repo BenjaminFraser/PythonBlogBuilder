@@ -228,6 +228,20 @@ class User(ndb.Model):
         user = User.query(User.username == username).get()
         return user
 
+    def like_post(self, urlsafe_postkey):
+        if urlsafe_postkey in self.liked_post_keys:
+            return False
+        else:
+            self.liked_post_keys.append(str(urlsafe_postkey))
+            return True
+
+    def follow_user(self, urlsafe_userkey):
+        if urlsafe_userkey in self.followed_user_keys:
+            return False
+        else:
+            self.followed_user_keys.append(str(urlsafe_userkey))
+            return True
+
 
 #class Theme(ndb.Model):
 #    layout_style = ndb.IntegerProperty()
@@ -265,13 +279,13 @@ class UserPosts(BlogHandler):
             self.redirect("/login")
 
 class NewPost(BlogHandler):
-    def get(self):
-        if self.user:
+    def get(self, user_id):
+        if self.user and int(self.user.key.id()) == int(user_id):
             self.render("newpost.html")
         else:
             self.redirect("/login")
 
-    def post(self):
+    def post(self, user_id):
         subject = self.request.get('subject')
         content = self.request.get('content')
 
@@ -383,7 +397,7 @@ class Signup(BlogHandler):
 
     def post(self):
         have_error = False
-        username = self.request.get('username')
+        username = str(self.request.get('username')).capitalize()
         password = self.request.get('password')
         verify = self.request.get('verify')
         email = self.request.get('email')
@@ -519,8 +533,8 @@ app = webapp2.WSGIApplication([('/', MainPage),
                                # blog individual page, using int regular expression for post id.
                                # Within handler urls, we pass in parameters using parenthesis (parameter).
                                ('/blog/([a-zA-Z0-9-_]+)', PostPage),
-                               ('/blog/newpost', NewPost),
-                               ('/blog/user/([0-9]+)', UserPosts),
+                               ('/user/([0-9]+)/newpost', NewPost),
+                               ('/user/([0-9]+)', UserPosts),
                                ('/blog/([a-zA-Z0-9-_]+)/edit', EditPost),
                                ('/blog/([a-zA-Z0-9-_]+)/delete', DeletePost),
                                ],
