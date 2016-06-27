@@ -25,8 +25,8 @@
   <br>
   <div class="row align-left">
         <div class="col s12 m10 offset-m1 l9 offset-l1">
-            <a class="waves-effect tooltipped waves-light btn-floating green" data-position="bottom" data-delay="50" data-tooltip="Like this post"><i class="material-icons left" >thumb_up</i></a>
-            <a class="waves-effect tooltipped waves-light btn-floating red" data-position="bottom" data-delay="50" data-tooltip="Dislike this post"><i class="material-icons left">thumb_down</i></a>
+            <a href="/blog/{{ post.key.urlsafe() }}?like_status=like&target_user={{ post.creator }}" class="waves-effect tooltipped waves-light btn-floating green" data-position="bottom" data-delay="50" data-tooltip="Like this post"><i class="material-icons left" >thumb_up</i></a>
+            <a href="/blog/{{ post.key.urlsafe() }}?like_status=dislike&target_user={{ post.creator }}" class="waves-effect tooltipped waves-light btn-floating red" data-position="bottom" data-delay="50" data-tooltip="Dislike this post"><i class="material-icons left">thumb_down</i></a>
             <a class="waves-effect tooltipped waves-light btn-floating orange" data-position="bottom" data-delay="50" data-tooltip="Follow {{ post.creator }}"><i class="material-icons left">library_add</i></a>
         </div>
   </div>

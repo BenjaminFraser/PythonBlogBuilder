@@ -38,6 +38,8 @@
 
     <link rel="stylesheet" href="/static/css/quill.snow.css">
 
+    <link rel="stylesheet" type="text/css" href="/static/css/sweetalert.css">
+
     <style type="text/css">
         #toolbar {
           border: 1px solid #e5e5e5;
@@ -101,7 +103,9 @@
         <div id="editor">{{ content }}</div>
 
         <div class="error">
-            <p class="red-text">{{ error }}</p>
+            {% if error_message %}
+            <p class="red-text">{{ error_message.text }}</p>
+            {% endif %}
         </div>
         <div class="divider"></div>
                 <div class="row">
@@ -123,10 +127,11 @@
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="/static/js/quill.js"></script>
     <script type="text/javascript" src="/static/js/materialize.min.js"></script>
+    <script src="/static/js/sweetalert.min.js"></script>
     <script type="text/javascript">
-    $(".button-collapse").sideNav();
-    $('.modal-trigger').leanModal();
-    $('#aside').pushpin({ top:110, bottom:500 });
+      $(".button-collapse").sideNav();
+      $('.modal-trigger').leanModal();
+      $('#aside').pushpin({ top:110, bottom:500 });
   
       $(document).ready(function(){
         $('.materialboxed').materialbox();
@@ -154,25 +159,41 @@
         }, 800);
       });
     
-        //Initialize editor and toolbar for rich text and post creation.
-        var editor = new Quill('#editor', {
-        modules: {
-        'toolbar': { container: '#toolbar' },
-        'image-tooltip': true,
-        'link-tooltip': true
-        },
-        theme: 'snow',
-        });
+      //Initialize editor and toolbar for rich text and post creation.
+      var editor = new Quill('#editor', {
+      modules: {
+      'toolbar': { container: '#toolbar' },
+      'image-tooltip': true,
+      'link-tooltip': true
+      },
+      theme: 'snow',
+      });
 
-        // Custom handling function for extracting html text from rich text,
-        // followed by updating the hidden inputs value, and finally submitting the form.
-        $(function(){
+      // Custom handling function for extracting html text from rich text,
+      // followed by updating the hidden inputs value, and finally submitting the form.
+      $(function(){
         $('#createPost').click(function () {
-            var mysave = editor.getHTML();
-            $('#content-field').val(mysave);
-            $("#create-post").submit();
-            });
-        });
+          var mysave = editor.getHTML();
+          $('#content-field').val(mysave);
+          $("#create-post").submit();
+          });
+      });
+
+      // Custom functions for error handling and message presentation.
+      {% if user_message %}
+      swal({   
+        title: "{{ user_message.title }}",   
+        text: "{{ user_message.text }}",   
+        imageUrl: "/static/images/{{ user_message.image }}" 
+      });
+      {% endif %}
+      {% if error_message %}
+      swal({   
+        title: "{{ error_message.title }}",   
+        text: "{{ error_message.text }}",   
+        type: "{{ error_message.type }}"
+      });
+      {% endif %}
 
     </script>
 

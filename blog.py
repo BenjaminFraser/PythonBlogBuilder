@@ -210,6 +210,7 @@ class User(ndb.Model):
     pass_hash = ndb.StringProperty(required=True)
     email = ndb.StringProperty(required=True)
     liked_post_keys = ndb.StringProperty(repeated=True)
+    disliked_post_keys = ndb.StringProperty(repeated=True)
     followed_user_keys = ndb.StringProperty(repeated=True)
     followers = ndb.IntegerProperty(default=0)
 
@@ -228,11 +229,28 @@ class User(ndb.Model):
         user = User.query(User.username == username).get()
         return user
 
-    def like_post(self, urlsafe_postkey):
-        if urlsafe_postkey in self.liked_post_keys:
+    def like_post(self, urlsafe_postkey, unlike=False):
+        if not unlike:
+            if urlsafe_postkey in self.liked_post_keys:
+                return False
+            else:
+                self.liked_post_keys.append(str(urlsafe_postkey))
+                self.put()
+                return True
+        else:
+            if urlsafe_postkey in self.liked_post_keys:
+                self.liked_post_keys.remove(str(urlsafe_postkey))
+                self.put()
+                return True
+            else:
+                return False
+
+    def dislike_post(self, urlsafe_postkey, undislike=False):
+        if urlsafe_postkey in self.disliked_post_keys:
             return False
         else:
-            self.liked_post_keys.append(str(urlsafe_postkey))
+            self.disliked_post_keys.append(str(urlsafe_postkey))
+            self.put()
             return True
 
     def follow_user(self, urlsafe_userkey):
@@ -240,6 +258,7 @@ class User(ndb.Model):
             return False
         else:
             self.followed_user_keys.append(str(urlsafe_userkey))
+            self.put()
             return True
 
 
@@ -251,10 +270,10 @@ class User(ndb.Model):
 class BlogFront(BlogHandler):
     def get(self):
         posts = ndb.gql("select * from Post order by created desc limit 10")
-        notification = jinja_env.globals['session'].get('notification')
+        user_message = jinja_env.globals['session'].get('notification')
         # reset the session notification global value to None.
-        jinja_env.globals['session']['notification'] = None    
-        self.render('front.html', posts = posts, notification=notification)
+        jinja_env.globals['session']['notification'] = None
+        self.render('front.html', posts = posts, user_message=user_message)
 
 class PostPage(BlogHandler):
     def get(self, urlsafe_postkey):
@@ -262,11 +281,30 @@ class PostPage(BlogHandler):
         if not post:
             self.error(404)
             return
+        user_message = None
+        # if GET request received for post, which matches creator name, like post.
+        if self.request.get('like_status') and self.request.get('target_user'):
+            if self.user and self.request.get('like_status') == "like":
+                user = User.fetch_by_id(self.user.key.id())
+                user.like_post(urlsafe_postkey)
+                user_message = {'title' : 'Thanks!',
+                                'text' : 'You liked this post.',
+                                'image' : 'thumbs-up.jpg'
+                                }
+            if self.user and self.request.get('like_status') == "dislike":
+                user = User.fetch_by_id(self.user.key.id())
+                user.dislike_post(urlsafe_postkey)
+                user_message = {'title' : 'Thanks!',
+                                'text' : 'This post has been disliked.',
+                                'image' : 'thumbs-up.jpg'
+                                }
         if self.user and self.user.username == post.creator:
             creator=True
-            self.render("permalink.html", post = post, creator=creator)
+            return self.render("permalink.html", post=post,
+                                creator=creator, user_message=user_message)
         else:
-            self.render("permalink.html", post = post, creator=False)
+            return self.render("permalink.html", post=post, 
+                                creator=False, user_message=user_message)
 
 class UserPosts(BlogHandler):
     """Displays all of a users created posts."""
@@ -296,8 +334,11 @@ class NewPost(BlogHandler):
             # create a urlsafe version of the key and pass into URL.
             self.redirect('/blog/%s' % str(p.key.urlsafe()))
         else:
-            error = "You need to fill in both subject and content! Duh!"
-            self.render("newpost.html", subject=subject, content=content, error=error)
+            error_message = { 'title' : "Whoops!", 
+                      'text' : "You need to fill in both subject and content!",
+                      'type' : "error" }
+            self.render("newpost.html", subject=subject, 
+                            content=content, error_message=error_message)
 
 #exceptions to be added to this class.
 class EditPost(BlogHandler):
@@ -318,20 +359,20 @@ class EditPost(BlogHandler):
             self.error(404)
             return
         if self.user and self.user.username == post.creator:
-            edit_request = self.request.get('editPost')
-            if edit_request == "accept":
-                new_subject = self.request.get('subject')
-                new_content = self.request.get('content-area')
-                post.subject = str(new_subject)
-                post.content = str(new_content)
-                post.put()
-                jinja_env.globals['session']['notification'] = ("Your blog post has been "
-                                                                "successfully updated.")
-                self.redirect("/blog")
-            else:
-                self.redirect("/blog/{0}".format(str(urlsafe_postkey)))
+            new_subject = self.request.get('subject')
+            new_content = self.request.get('content-area')
+            post.subject = str(new_subject)
+            post.content = str(new_content)
+            logging.error("Added %s, %s to the blog post." % (new_content, new_subject))
+            post.put()
+            jinja_env.globals['session']['notification'] = { 
+                                                    'title' : 'Thanks {0}'.format(self.user.username),
+                                                    'text' : 'Your blog post has been successfully updated.',
+                                                    'image' : 'thumbs-up.jpg'}
+            self.redirect("/blog")
+
         else:
-            self.redirect("/login")
+            self.redirect("/blog/{0}".format(str(urlsafe_postkey)))
 
 # exceptions to be added to this class
 class DeletePost(BlogHandler):
@@ -352,7 +393,11 @@ class DeletePost(BlogHandler):
                 delete_request = self.request.get('deletePost')
                 if delete_request == "yes":
                     post.key.delete()
-                    jinja_env.globals['session']['notification'] = "Your blog post has been successfully deleted."
+                    jinja_env.globals['session']['notification'] = { 
+                                                    'title' : 'Thanks {0}'.format(self.user.username),
+                                                    'text' : 'Your blog post has been successfully deleted.',
+                                                    'image' : 'thumbs-up.jpg'
+                                                    }
                     self.redirect("/blog")
                 elif delete_request == "no":
                     self.redirect("/blog/{0}".format(str(post_id)))
