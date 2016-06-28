@@ -67,6 +67,7 @@
         $('.materialboxed').materialbox();
          $('.parallax').parallax();
           $('.button-collapse').sideNav();
+          $('.slider').slider();
       });
 
       $('.dropdown-button').dropdown({
@@ -97,11 +98,11 @@
     imageUrl: "/static/images/{{ user_message.image }}" 
   });
   {% endif %}
-  {% if error_message %}
+  {% if alert_message %}
   swal({   
-    title: "{{ error_message.title }}",   
-    text: "{{ error_message.text }}",   
-    type: "{{ error_message.type }}"
+    title: "{{ alert_message.title }}",   
+    text: "{{ alert_message.text }}",   
+    type: "{{ alert_message.type }}"
   });
   {% endif %}
 </script>

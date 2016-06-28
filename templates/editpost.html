@@ -103,8 +103,8 @@
         <div id="editor">{{post.content | safe}}</div>
 
         <div class="error">
-          {% if error_message %}
-            <p class="red-text">{{ error_message.text }}</p>
+          {% if alert_message %}
+            <p class="red-text">{{ alert_message.text }}</p>
           {% endif %}
         </div>
         <div class="divider"></div>
@@ -187,11 +187,11 @@
         imageUrl: "/static/images/{{ user_message.image }}" 
       });
       {% endif %}
-      {% if error_message %}
+      {% if alert_message %}
       swal({   
-        title: "{{ error_message.title }}",   
-        text: "{{ error_message.text }}",   
-        type: "{{ error_message.type }}"
+        title: "{{ alert_message.title }}",   
+        text: "{{ alert_message.text }}",   
+        type: "{{ alert_message.type }}"
       });
       {% endif %}
 

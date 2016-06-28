@@ -170,3 +170,7 @@ hr {
 {
   color: #1dcaff;
 }
+
+.text-styled-header {
+  font-family: "alex-brush", Helvetica, sans-serif;
+}

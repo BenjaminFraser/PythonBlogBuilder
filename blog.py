@@ -10,8 +10,8 @@ import logging
 import webapp2
 import jinja2
 
-from google.appengine.ext import db
 from google.appengine.ext import ndb
+from models import User, Post
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
@@ -115,8 +115,8 @@ class BlogHandler(webapp2.RequestHandler):
             jinja_env.globals['session'] = {}
         else:
             jinja_env.globals['session'].update({ 'id': user.key.id(),
-                                                    'username' : user.username, 
-                                                    'email' : user.email })
+                                                  'username' : user.username, 
+                                                  'email' : user.email })
 
 def render_post(response, post):
     response.out.write('<b>' + post.subject + '</b><br>')
@@ -124,7 +124,7 @@ def render_post(response, post):
 
 class MainPage(BlogHandler):
   def get(self):
-      self.render('index.html')
+      self.render('introduction.html')
 
 ##### blog stuff
 def blog_key(name = 'default'):
@@ -132,26 +132,6 @@ def blog_key(name = 'default'):
         groups can be created for different names of blogs, 'default' by default.
     """
     return ndb.Key('blogs', name)
-
-class Post(ndb.Model):
-    subject = ndb.StringProperty(required = True)
-    # text property, since it is unindexed and allows > 500 words
-    content = ndb.TextProperty(required = True)
-    # use auto_now_add = True to automatically create the created property
-    created = ndb.DateTimeProperty(auto_now_add = True)
-    creator = ndb.StringProperty(required = True)
-    last_modified = ndb.DateTimeProperty(auto_now = True)
-    user_like_keys = ndb.StringProperty(repeated=True)
-    comments = ndb.StringProperty(repeated=True)
-
-    @classmethod
-    def query_post(cls, ancestor_key):
-        """Allows simple querying of posts for an individual User (ancestor)"""
-        return cls.query(ancestor=ancestor_key).order(-cls.last_modified)
-
-    def render(self):
-        self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post.html", p = self)
 
 # User account functionality
 def make_salt(length=5):
@@ -199,74 +179,6 @@ def users_key(group= 'default'):
     """
     return ndb.Key('users', group)
 
-
-class User(ndb.Model):
-    """User profile to store the details of each user registered.
-    Attributes:
-        name: The name of the user (str).
-        email: The email address of the user (str).
-    """
-    username = ndb.StringProperty(required=True)
-    pass_hash = ndb.StringProperty(required=True)
-    email = ndb.StringProperty(required=True)
-    liked_post_keys = ndb.StringProperty(repeated=True)
-    disliked_post_keys = ndb.StringProperty(repeated=True)
-    followed_user_keys = ndb.StringProperty(repeated=True)
-    followers = ndb.IntegerProperty(default=0)
-
-    @classmethod
-    def new_user(cls, username, password, email):
-        pass_hash = make_password_hash(username, password)
-        return User(username=username, pass_hash=pass_hash, email=email)
-
-    @classmethod 
-    def fetch_by_id(cls, user_id):
-        user = ndb.Key(User, int(user_id)).get()
-        return user
-
-    @classmethod
-    def fetch_by_username(cls, username):
-        user = User.query(User.username == username).get()
-        return user
-
-    def like_post(self, urlsafe_postkey, unlike=False):
-        if not unlike:
-            if urlsafe_postkey in self.liked_post_keys:
-                return False
-            else:
-                self.liked_post_keys.append(str(urlsafe_postkey))
-                self.put()
-                return True
-        else:
-            if urlsafe_postkey in self.liked_post_keys:
-                self.liked_post_keys.remove(str(urlsafe_postkey))
-                self.put()
-                return True
-            else:
-                return False
-
-    def dislike_post(self, urlsafe_postkey, undislike=False):
-        if urlsafe_postkey in self.disliked_post_keys:
-            return False
-        else:
-            self.disliked_post_keys.append(str(urlsafe_postkey))
-            self.put()
-            return True
-
-    def follow_user(self, urlsafe_userkey):
-        if urlsafe_userkey in self.followed_user_keys:
-            return False
-        else:
-            self.followed_user_keys.append(str(urlsafe_userkey))
-            self.put()
-            return True
-
-
-#class Theme(ndb.Model):
-#    layout_style = ndb.IntegerProperty()
-#    background_image = ndb.PickleProperty()
-#    text_colour = ndb.IntegerProperty()
-
 class BlogFront(BlogHandler):
     def get(self):
         posts = ndb.gql("select * from Post order by created desc limit 10")
@@ -310,9 +222,16 @@ class UserPosts(BlogHandler):
     """Displays all of a users created posts."""
     def get(self, user_id):
         if self.user:
-            ancestor_key = self.user.key
-            posts = Post.query_post(ancestor_key).fetch()
-            self.render("userposts.html")
+            user_posts = Post.query_post(self.user.key).fetch()
+            # fetch all user liked/disliked posts using the User liked_post_keys string list.
+            liked_keys = [ndb.Key(urlsafe=i) for i in self.user.liked_post_keys[-10:]]
+            disliked_keys = [ndb.Key(urlsafe=i) for i in self.user.disliked_post_keys[-10:]]
+            liked_posts = ndb.get_multi(liked_keys)
+            disliked_posts = ndb.get_multi(disliked_keys)
+            followed_keys = [ndb.Key(urlsafe=i) for i in self.user.followed_user_keys[:25]]
+            followers = ndb.get_multi(followed_keys)
+            return self.render("userposts.html", user_posts=user_posts, 
+                            liked_posts=liked_posts, followers=followers)
         else: 
             self.redirect("/login")
 
@@ -334,11 +253,11 @@ class NewPost(BlogHandler):
             # create a urlsafe version of the key and pass into URL.
             self.redirect('/blog/%s' % str(p.key.urlsafe()))
         else:
-            error_message = { 'title' : "Whoops!", 
+            alert_message = { 'title' : "Whoops!", 
                       'text' : "You need to fill in both subject and content!",
                       'type' : "error" }
             self.render("newpost.html", subject=subject, 
-                            content=content, error_message=error_message)
+                            content=content, alert_message=alert_message)
 
 #exceptions to be added to this class.
 class EditPost(BlogHandler):
@@ -438,7 +357,10 @@ def valid_email(email):
 class Signup(BlogHandler):
 
     def get(self):
-        self.render("signup.html")
+        # obtain any user_messages passed into the notification var, and reset to None.
+        alert_message = jinja_env.globals['session'].get('notification')
+        jinja_env.globals['session']['notification'] = None
+        self.render("signup.html", alert_message=alert_message)
 
     def post(self):
         have_error = False
@@ -490,7 +412,7 @@ class Login(BlogHandler):
 
     def post(self):
         have_error = False
-        username = self.request.get('username')
+        username = str(self.request.get('username')).capitalize()
         password = self.request.get('password')
 
         params = dict(username = username)
@@ -526,6 +448,10 @@ class Logout(BlogHandler):
         user_id = self.get_verified_cookie('user_id')
         # self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
         self.logout()
+        # obtain any user_messages passed into the notification var, and reset to None.
+        jinja_env.globals['session']['notification'] = { 'title' : "Your logout was successful!", 
+                                                         'text' : "Thank you for taking the time to visit!",
+                                                         'type' : "success" }
         self.redirect('/signup')
 
 class Welcome(BlogHandler):
