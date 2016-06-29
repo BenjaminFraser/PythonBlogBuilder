@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "navbar.html" %}
+
+<div id="index-banner" class="parallax-container valign-wrapper">
+    <div class="section no-pad-bot">
+      <div class="container valign">
+        <br><br>
+        <h1 class="header center white-text text-darken-2"><i>Be inspired, be indulgent, be informed<i></h1>
+        <div class="row center">
+          <h5 class="header col s12 light white-text text-darken-2"><u>with a community of bloggers from all over the world.</u></h5>
+        </div>
+        <div class="row center">
+          <a href="#startPosts" class="btn-floating btn-large waves-effect waves-light blue darken-2 head-link"><i class="fa fa-angle-double-down"></i></a>
+        </div>
+        <br><br>
+
+      </div>
+    </div>
+    <div class="parallax"><img src="/static/images/road.jpg" alt="Unsplashed background img 2"></div>
+</div>
+
+
+<div class="container" id="startPosts" id="notification-box">
+  <br>
+  {% if notification %}
+  <div class="error row">
+      <div class="col s12 m5">
+        <div class="card-panel blue">
+          <span class="white-text"><h5>{{ notification }}<h5></span>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  <br>
+  <br>
+  <br>
+  <div class="row">
+    <div class="col s12 m10 offset-m1 l9 offset-l1">
+      
+      
+                {% for p in posts %}
+                    {{ p.render_shortened() | safe }}
+                {% endfor %}
+        <div class="row">
+          <a href="#" class="btn-large waves-effect waves-light blue darken-2">More posts  <i class="fa fa-chevron-right"></i></a>
+        </div>
+    </div>
+  </div>
+</div>
+
+{% include "footer.html" %}
+{% endblock %}

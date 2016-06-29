@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "navbar.html" %}
+
+<div class="parallax-container">
+    <div class="parallax"><img src="/static/images/mystical_world.jpg"></div>
+  </div>
+  <div class="section white">
+    <div class="row container">
+      <h1 class="header text-styled-header center">It's your world - write about it</h1>
+      <p class="grey-text text-darken-3 lighten-3 center flex-text">The Big Borogu is powered by you, the community. Be that person you want to be, and empower the world with your thoughts today.</p>
+    </div>
+
+    <div class="slider">
+    <ul class="slides">
+      <li>
+        <img src="/static/images/journal.jpg"> <!-- random image -->
+        <div class="caption center-align">
+          <h3>Create your very own blog</h3>
+          <h5 class="light white-text"><i>Get started in seconds, with simplicity.</i></h5>
+        </div>
+      </li>
+      <li>
+        <img src="/static/images/road_big.jpg"> <!-- random image -->
+        <div class="caption left-align">
+          <h3>Follow others</h3>
+          <h5 class="light white-text"><i>A whole community of inspirational and like minded people</i></h5>
+        </div>
+      </li>
+      <li>
+        <img src="/static/images/volcano.jpg"> <!-- random image -->
+        <div class="caption right-align">
+          <h3>Discover what's hot</h3>
+          <h5 class="light white-text"><i>Browse the freshest and highest rated content</i></h5>
+        </div>
+      </li>
+      <li>
+        <img src="/static/images/signup.jpg"> <!-- random image -->
+        <div class="caption center-align">
+          <h3 class="white-text">Personalise your account today</h3>
+          <h5 class="light white-text"><i>Signup now, instantly and free.</i></h5>
+          <br>
+          <a href="/signup" class="btn btn-large waves-effect waves-light green z-depth-5" name="signup" value="Signup">Signup!</a>
+        </div>
+      </li>
+    </ul>
+  </div>
+  </div>
+
+  <div class="parallax-container">
+    <div class="parallax"><img src="/static/images/colourful_cake.jpg"></div>
+  </div>
+
+<footer class="page-footer blue darken-2">
+  <div class="container">
+    <div class="row">
+      <div class="col l6 s12">
+        <h5 class="white-text center"><i>Join the community, and start contributing</i></h5> 
+        <hr>
+        <p class="white-text center flex-text"><a href="#" class="white-text">Home</a> &#149; <a href="#" class="white-text">About</a> &#149; <a href="#" class="white-text">FAQ's</a> &#149; <a href="#" class="white-text">Contact us</a></p>
+      </div>
+      <div class="col l2 offset-l2 s6">
+          <ul class="center">
+            <li><a href="#" class="btn waves-effect waves-light blue"><i class="fa fa-facebook"></i></a></li>
+            <li><br></li>
+            <li><a href="#" class="btn waves-effect waves-light blue"><i class="fa fa-twitter"></i></a></li>
+          </ul>
+      </div>
+      <div class="col l2 s6">
+        <ul>
+            <li><a href="#" class="btn waves-effect waves-light blue"><i class="fa fa-linkedin"></i></a></li>
+            <li><br></li>
+            <li><a href="#" class="btn waves-effect waves-light blue"><i class="fa fa-github"></i></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-copyright">
+    <div class="container center-align">
+        <i class="fa fa-comments-o" aria-hidden="true"></i> The Big Borogu &#149; Created by Benjamin Fraser
+    </div>
+  </div>
+</footer>
+
+{% endblock %}
