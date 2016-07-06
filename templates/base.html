@@ -115,15 +115,16 @@
     text: "{{ user_message.text }}",   
     imageUrl: "/static/images/{{ user_message.image }}" 
   },
-  function(){
-    window.location.reload();
-});
+  function redirectPage() {
+    window.location = window.location.pathname;
+  });
+  
   {% endif %}
   {% if alert_message %}
   swal({   
-    title: "{{ alert_message.title }}",   
-    text: "{{ alert_message.text }}",   
-    type: "{{ alert_message.type }}"
+    title: "{{ alert_message.title | safe}}",   
+    text: "{{ alert_message.text | safe}}",   
+    type: "{{ alert_message.type | safe}}"
   });
   {% endif %}
 </script>

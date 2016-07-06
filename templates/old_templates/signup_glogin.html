@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="A front-end template that helps you build fast, modern mobile web apps.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <title>The Big Boruku Signup</title>
+
+    <!-- Add to homescreen for Chrome on Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" sizes="192x192" href="/static/images/android-desktop.png">
+
+    <!-- Add to homescreen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Material Design Lite">
+    <link rel="apple-touch-icon-precomposed" href="/static/images/ios-desktop.png">
+
+    <!-- Tile icon for Win8 (144x144 + tile color) -->
+    <meta name="msapplication-TileImage" content="/static/images/touch/ms-touch-icon-144x144-precomposed.png">
+    <meta name="msapplication-TileColor" content="#3372DF">
+
+    <link rel="shortcut icon" href="/static/images/favicon.png">
+
+    <!-- SEO: If your mobile URL is different from the desktop URL, add a canonical link to the desktop page https://developers.google.com/webmasters/smartphone-sites/feature-phones -->
+    <!--
+    <link rel="canonical" href="http://www.example.com/">
+    -->
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+    <!--Import materialize.css-->
+    <link type="text/css" rel="stylesheet" href="/static/css/materialize.min.css"  media="screen,projection"/>
+
+    <link rel="stylesheet" href="/static/css/footer-distributed.css">
+
+    <link href="/static/css/index.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+
+    <link rel="stylesheet" type="text/css" href="/static/css/sweetalert.css">
+
+    <!--LOAD PRE-REQUISITES FOR GOOGLE SIGN IN -->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+
+    <meta name="google-signin-client_id" content="109625039505-rbhe5m0kt6peni5dgkt8pr8pn8cq18pk.apps.googleusercontent.com">
+    
+  </head>
+
+  <body>
+    {% include "navbar.html" %}
+          <div id="index-banner" class="parallax-container valign-wrapper">
+              <div class="section no-pad-bot">
+                <div class="container valign">
+                  <br><br>
+                  <h1 class="header center white-text text-darken-2">Join our community today</h1>
+                  <div class="row center">
+                    <h5 class="header col s12 light white-text text-darken-2"><u>Create your own account now, with just a few simple clicks</u></h5>
+                  </div>
+                  <div class="row center">
+                    <a href="#startPosts" class="btn-floating btn-large waves-effect waves-light blue darken-2 head-link"><i class="fa fa-angle-double-down"></i></a>
+                  </div>
+                  <br><br>
+
+                </div>
+              </div>
+              <div class="parallax"><img src="/static/images/road.jpg" alt="Unsplashed background img 2"></div>
+          </div>
+
+          <main>
+            <div class="container">
+              <div class="row">
+                  <div class="col m12">
+                      <h2 class="center-align text-styled-title">Create an account</h2>
+                        <h4 class="center-align">Enter your details below</h4>
+                          <div class="row">
+                            <form method="post" class="col s12">
+                                <div class="row">
+                                    <div class="input-field col s8 offset-s2">
+                                        <i class="material-icons prefix">account_circle</i>
+                                        <input id="signup-username" type="text" class="validate" name="username" value="{{username}}">
+                                        <label for="signup-username">Username</label>
+                                    </div>
+                                    <div class="col s2 error-field" style="font-size: 0.8em; color: red;">
+                                      {{error_username}}
+                                      {{error_name_taken}}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="input-field col s8 offset-s2">
+                                        <i class="material-icons prefix">lock_open</i>
+                                        <input id="signup-password" type="password" class="validate" name="password">
+                                        <label for="signup-password">Password</label>
+                                    </div>
+                                    <div class="col s2 error-field" style="font-size: 0.8em; color: red;">
+                                      {{error_password}}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="input-field col s8 offset-s2">
+                                        <i class="material-icons prefix">lock_open</i>
+                                        <input id="signup-pass-ver" type="password" class="validate" name="verify">
+                                        <label for="signup-pass-ver">Verify Password</label>
+                                    </div>
+                                    <div class="col s2 error-field" style="font-size: 0.8em; color: red;">
+                                      {{error_verify}}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="input-field col s8 offset-s2">
+                                        <i class="material-icons prefix">email</i>
+                                        <input id="signup-email" type="email" class="validate" name="email" value="{{email}}">
+                                        <label for="signup-email" data-error="Invalid - email must be of the correct format">Email</label>
+                                    </div>
+                                    <div class="col s2 error-field" style="font-size: 0.8em; color: red;">
+                                      {{error_name}}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col s8 offset-s2">
+                                        <p>
+                                            <input type="checkbox" id="remember">
+                                            <label for="remember">Remember me</label>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="divider"></div>
+                                <div class="row">
+                                    <div class="col m12">
+                                        <p class="center-align">
+                                            <button class="btn btn-large waves-effect waves-light" type="submit" name="action">Login</button>
+                                        </p>
+                                    </div>
+                                </div>
+                            </form>
+                      </div>
+                  </div>
+              </div>
+              <div class="row"> 
+                <div class="col m12">
+                  <h3 class="center-align text-styled-title">Or, login via Google+ </h3>
+                  <br>
+                  <!-- Google + sign in button -->
+
+                  <div id="signInButton center-align">
+                    <span class="g-signin"
+                        data-scope="openid email"
+                        data-clientid="109625039505-rbhe5m0kt6peni5dgkt8pr8pn8cq18pk.apps.googleusercontent.com"
+                        data-redirecturi="postmessage"
+                        data-accesstype="offline"
+                        data-cookiepolicy="single_host_origin"
+                        data-callback="signInCallback"
+                        data-approvalprompt="force">
+                    </span>
+                  </div>
+
+                  <div id="result"></div>
+
+                </div>
+              </div>
+          </div>
+        </main>
+        {% include "footer.html" %}
+
+        <!-- GOOGLE + SIGN IN SCRIPT -->
+        <script>
+        function signInCallback(authResult) {
+          if (authResult['code']) {
+            // Hide the sign-in button now that the user is authorized
+            $('#signinButton').attr('style', 'display: none');
+            // Send the one-time-use code to the server, if the server responds, write a 'login successful' message to the web page and then redirect back to the main categories page
+            $.ajax({
+              type: 'POST',
+              url: '/gconnect?state={{STATE}}',
+              processData: false,
+              data: authResult['code'],
+              contentType: 'application/octet-stream; charset=utf-8',
+              success: function(result) {
+                // Handle or verify the server response if necessary.
+                if (result) {
+                  $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')
+                 setTimeout(function() {
+                  window.location.href = "/blog";
+                 }, 4000);
+                  
+              } else if (authResult['error']) {
+            console.log('There was an error: ' + authResult['error']);
+          } else {
+                $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+                 }
+              }
+              
+          }); } }
+        </script>
+
+        <!-- GOOGLE + SIGN IN SCRIPT END -->
+        
+  <!-- Custom fonts for header and post styling -->
+  <script type="text/javascript" script-name="alex-brush" src="https://use.edgefonts.net/alex-brush.js"></script>
+  <script type="text/javascript" script-name="carter-one" src="https://use.edgefonts.net/carter-one.js"></script>
+  <!--Import jQuery before materialize.js-->
+  <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="/static/js/materialize.min.js"></script>
+  <script src="/static/js/sweetalert.min.js"></script>
+  <script type="text/javascript">
+    $(".button-collapse").sideNav();
+    $('.modal-trigger').leanModal();
+    $('#aside').pushpin({ top:110, bottom:500 });
+  </script>
+  <script>
+      $(document).ready(function(){
+
+        $("body").css("display", "none");
+        $("img").css("display", "none");
+
+        $("body").fadeIn(1000);
+        $("img").fadeIn(1000);
+
+        $("a.transition").click(function(event){
+        event.preventDefault();
+        linkLocation = this.href;
+        $("body").fadeOut(1000, redirectPage);
+        $("img").fadeOut(1000, redirectPage); 
+        });
+
+        function redirectPage() {
+        window.location = linkLocation;
+        }
+
+        $('.materialboxed').materialbox();
+         $('.parallax').parallax();
+          $('.button-collapse').sideNav();
+          $('.slider').slider();
+      });
+
+      $('.dropdown-button').dropdown({
+          inDuration: 300,
+          outDuration: 225,
+          constrain_width: false, // Does not change width of dropdown to that of the activator
+          hover: true, // Activate on hover
+          gutter: 0, // Spacing from edge
+          belowOrigin: true, // Displays dropdown below the button
+          alignment: 'left' // Displays dropdown with edge aligned to the left of button
+        }
+      );
+      
+      $('.head-link').click(function(e) {
+        e.preventDefault();
+        
+        var goto = $(this).attr('href');
+        $('html, body').animate({
+            scrollTop: $(goto).offset().top
+        }, 800);
+      });
+  </script>
+  <script type="text/javascript">
+  {% if user_message %}
+  swal({   
+    title: "{{ user_message.title }}",   
+    text: "{{ user_message.text }}",   
+    imageUrl: "/static/images/{{ user_message.image }}" 
+  },
+  function(){
+    window.location.reload();
+});
+  {% endif %}
+  {% if alert_message %}
+  swal({   
+    title: "{{ alert_message.title }}",   
+    text: "{{ alert_message.text }}",   
+    type: "{{ alert_message.type }}"
+  });
+  {% endif %}
+</script>
+  </body> 
+</html>

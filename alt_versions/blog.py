@@ -6,31 +6,38 @@ import hashlib
 import hmac
 from string import letters
 import logging
-
+import json
 import webapp2
 import jinja2
 
 from google.appengine.ext import ndb
-from account_func import *
 from models import User, Post
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True)
-# set global jinja variable 'session' to an empty dict if it doesn't exist.
-jinja_env.globals.setdefault('session', {})
 
-def blog_key(name = 'default'):
-    """An ancestor element key function for blogs within the Datastore. Various
-        groups can be created for different names of blogs, 'default' by default.
-    """
-    return ndb.Key('blogs', name)
+# obtain client id for Google Login functionality.
+CLIENT_ID = json.loads(
+    open('client_secrets.json', 'r').read())['web']['client_id']
 
-def users_key(group= 'default'):
-    """An ancestor element key function for users within the Datastore. Various
-        groups can be created for different kinds of users, 'default' by default.
-    """
-    return ndb.Key('users', group)
+# set global variable session for template session data accessibility.
+jinja_env.globals['session'] = {}
+
+# Cookie securing functionality
+SECRET = 'ddvtohCUzsOsd5RkZInx5ehUVpuzrZKvlrdXUdPk'
+
+def make_hash_str(input_val):
+    return hmac.new(SECRET, input_val).hexdigest()
+
+def make_secure_val(input_val):
+    # use "|" rather than ",", since GAE does not support "," within its cookies.
+    return "{0}|{1}".format(str(input_val), make_hash_str(input_val))
+
+def verify_secure_val(secure_val):
+    val = secure_val.split('|')[0]
+    if str(make_secure_val(val)) == str(secure_val):
+        return val
 
 def fetch_username(user_id):
     """Returns a User entities username from a given user_id
@@ -46,10 +53,6 @@ def fetch_username(user_id):
 def render_str(template, **params):
     t = jinja_env.get_template(template)
     return t.render(params)
-
-def render_post(response, post):
-    response.out.write('<b>' + post.subject + '</b><br>')
-    response.out.write(post.content)
 
 # BlogHandler class to carry out the methods required by our blog.
 class BlogHandler(webapp2.RequestHandler):
@@ -120,9 +123,66 @@ class BlogHandler(webapp2.RequestHandler):
                                                   'username' : user.username, 
                                                   'email' : user.email })
 
+def render_post(response, post):
+    response.out.write('<b>' + post.subject + '</b><br>')
+    response.out.write(post.content)
+
 class MainPage(BlogHandler):
   def get(self):
       self.render('introduction.html')
+
+##### blog stuff
+def blog_key(name = 'default'):
+    """An ancestor element key function for blogs within the Datastore. Various
+        groups can be created for different names of blogs, 'default' by default.
+    """
+    return ndb.Key('blogs', name)
+
+# User account functionality
+def make_salt(length=5):
+    """Creates a random salt value of length 5 by default. If an integer is given as an arg,
+        a salt of the corresponding length will be generated and returned.
+    Args:
+        length (int): The length of the desired salt value, 5 by default.
+    Returns:
+        The generated salt value, as a string.
+    """
+    return ''.join(random.choice(string.letters+string.digits) for x in range(length))
+
+def make_password_hash(name, password, salt=None):
+    """Creates a secure password hash given a User name and password given as string arguments.
+        A custom salt can be used through using the 'salt' keyword variable, equal to desired salt.
+    Args:
+        name (str): The User username, as a string.
+        password (str): the User password, as a string.
+        salt (str): The desired salt to be used within the password hash. None by default, in which case
+                    a random salt of length 5 is used.
+    Returns:
+        The secure hash, in the form of a string, like so: "hash_value, salt_value"
+    """
+    if not salt:
+        salt = make_salt()
+    h = hashlib.sha256(str(name) + str(password) + salt).hexdigest()
+    return "{0},{1}".format(h, salt)
+
+def valid_user_password(name, password, hash_val):
+    """Takes a Users name, password and database hash_val and verifies that the user login
+        details were valid.
+    Args:
+        name (str): The username of the User, as a string.
+        password (str): The password entered by the user, as a string.
+        hash_val (str): The hash value from the Datastore, as a string.
+    Returns:
+        True if the password and username credentials are valid, else returns False.
+    """
+    salt = hash_val.split(",")[1]
+    return True if make_password_hash(name, password, salt) == hash_val else False
+
+def users_key(group= 'default'):
+    """An ancestor element key function for users within the Datastore. Various
+        groups can be created for different kinds of users, 'default' by default.
+    """
+    return ndb.Key('users', group)
 
 class BlogFront(BlogHandler):
     def get(self):
@@ -132,7 +192,6 @@ class BlogFront(BlogHandler):
         jinja_env.globals['session']['notification'] = None
         self.render('front.html', posts = posts, user_message=user_message)
 
-# TO - DO : ensure a user cannot both like and dislike a post at the same time.
 class PostPage(BlogHandler):
     def get(self, urlsafe_postkey):
         post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
@@ -156,34 +215,13 @@ class PostPage(BlogHandler):
                                 'text' : 'This post has been disliked.',
                                 'image' : 'thumbs-up.jpg'
                                 }
-        if self.user:
-            creator = True if self.user.username == post.creator else False
-            user = User.fetch_by_id(self.user.key.id())
-            liked_post=True if user.is_liked_post(urlsafe_postkey) else False
-            return self.render("permalink.html", post=post, creator=creator, 
-                                liked_post=liked_post, user_message=user_message)
+        if self.user and self.user.username == post.creator:
+            creator=True
+            return self.render("permalink.html", post=post,
+                                creator=creator, user_message=user_message)
         else:
             return self.render("permalink.html", post=post, 
                                 creator=False, user_message=user_message)
-
-    def post(self, urlsafe_postkey):
-        post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
-        if not post:
-            self.error(404)
-            return
-        comment = self.request.get('comment')
-        alert_message = None
-        creator = True if self.user.username == post.creator else False
-        user = User.fetch_by_id(self.user.key.id())
-        liked_post=True if user.is_liked_post(urlsafe_postkey) else False
-        if not comment:
-            alert_message = { 'title' : "Whoops!", 
-                              'text' : "You need to fill in the comment field!",
-                              'type' : "error" }
-            return self.render("permalink.html", post=post, creator=creator, 
-                                liked_post=liked_post, user_message=user_message)
-        else:
-            post.comment.append()
 
 class UserPosts(BlogHandler):
     """Displays all of a users created posts."""
@@ -308,13 +346,26 @@ class Rot13(BlogHandler):
 
         self.render('rot13-form.html', text = rot13)
 
+
+USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+def valid_username(username):
+    return username and USER_RE.match(username)
+
+PASS_RE = re.compile(r"^.{3,20}$")
+def valid_password(password):
+    return password and PASS_RE.match(password)
+
+EMAIL_RE  = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
+def valid_email(email):
+    return not email or EMAIL_RE.match(email)
+
 class Signup(BlogHandler):
 
     def get(self):
         # obtain any user_messages passed into the notification var, and reset to None.
         alert_message = jinja_env.globals['session'].get('notification')
         jinja_env.globals['session']['notification'] = None
-        self.render("signup.html", alert_message=alert_message)
+        self.render("signup_glogin.html", alert_message=alert_message)
 
     def post(self):
         have_error = False
@@ -349,12 +400,7 @@ class Signup(BlogHandler):
             have_error = True
 
         if have_error:
-            gen = (v for (k,v) in params.iteritems() if k.startswith('error'))
-            msg_text = ""
-            for entry in gen:
-                msg_text += "{0} ".format(str(entry))
-                alert_message = { 'title' : "Whoops!", 'text' : msg_text, 'type' : "error" }
-            self.render('signup.html', alert_message=alert_message, **params)
+            self.render('signup.html', **params)
         else:
             user = User.new_user(username=username, password=password, email=email)
             user.put()
@@ -367,7 +413,10 @@ class Signup(BlogHandler):
 
 class Login(BlogHandler):
     def get(self):
-        self.render('login.html')
+        # Generate a unique random session state variable as a secure token.
+        state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in xrange(32))
+        jinja_env.globals['session']['state'] = state
+        self.render('login.html', STATE=state)
 
     def post(self):
         have_error = False
@@ -393,14 +442,7 @@ class Login(BlogHandler):
                 params['error_password'] = "The password you entered was incorrect."
 
         if have_error:
-            gen = (v for (k,v) in params.iteritems() if k.startswith('error'))
-            msg_text = ""
-            for entry in gen:
-                msg_text += "{0} ".format(str(entry))
-            alert_message = { 'title' : "Whoops!", 
-                              'text' : msg_text,
-                              'type' : "error" }
-            self.render('login.html', alert_message=alert_message, **params)
+            self.render('login.html', **params)
         else:
             # simulate login by setting the user_id cookie to the users id and redirect to welcome.
             # self.set_cookie('user_id', str(user.key.id()))
@@ -419,6 +461,97 @@ class Logout(BlogHandler):
                                                          'text' : "Thank you for taking the time to visit!",
                                                          'type' : "success" }
         self.redirect('/signup')
+
+class gconnect(BlogHandler):
+    def post(self):
+        """ Authenticate and login using G+ API. """
+        # Validate state token
+        if self.request.get('state') != login_session['state']:
+            response = make_response(json.dumps('Invalid state parameter.'), 401)
+            self.response.headers['Content-Type'] = 'application/json'
+            return response
+        # Obtain authorization code
+        code = self.request.data
+
+        try:
+            # Upgrade the authorization code into a credentials object
+            oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
+            oauth_flow.redirect_uri = 'postmessage'
+            credentials = oauth_flow.step2_exchange(code)
+        except FlowExchangeError:
+            response = make_response(
+                json.dumps('Failed to upgrade the authorization code.'), 401)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
+        # Check that the access token is valid.
+        access_token = credentials.access_token
+        url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
+               % access_token)
+        h = httplib2.Http()
+        result = json.loads(h.request(url, 'GET')[1])
+        # If there was an error in the access token info, abort.
+        if result.get('error') is not None:
+            response = make_response(json.dumps(result.get('error')), 500)
+            response.headers['Content-Type'] = 'application/json'
+
+        # Verify that the access token is used for the intended user.
+        gplus_id = credentials.id_token['sub']
+        if result['user_id'] != gplus_id:
+            response = make_response(
+                json.dumps("Token's user ID doesn't match given user ID."), 401)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
+        # Verify that the access token is valid for this app.
+        if result['issued_to'] != CLIENT_ID:
+            response = make_response(
+                json.dumps("Token's client ID does not match app's."), 401)
+            print "Token's client ID does not match app's."
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
+        stored_credentials = login_session.get('credentials')
+        stored_gplus_id = login_session.get('gplus_id')
+        if stored_credentials is not None and gplus_id == stored_gplus_id:
+            response = make_response(json.dumps('Current user is already connected.'),
+                                     200)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+
+        # Store the access token in the session for later use.
+        login_session['credentials'] = credentials.access_token
+        login_session['gplus_id'] = gplus_id
+
+        # Get user info
+        userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
+        params = {'access_token': credentials.access_token, 'alt': 'json'}
+        answer = requests.get(userinfo_url, params=params)
+
+        data = answer.json()
+
+        login_session['username'] = data['name']
+        login_session['picture'] = data['picture']
+        login_session['email'] = data['email']
+        # ADD PROVIDER TO LOGIN SESSION
+        login_session['provider'] = 'google'
+
+        # see if user exists, if it doesn't make a new one
+        user_id = getUserID(data["email"])
+        if not user_id:
+            user_id = createUser(login_session)
+        login_session['user_id'] = user_id
+
+        output = ''
+        output += '<h1>Welcome, '
+        output += login_session['username']
+        output += '!</h1>'
+        output += '<img src="'
+        output += login_session['picture']
+        output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+        flash("you are now logged in as %s" % login_session['username'])
+        print "done!"
+        return output
 
 class Welcome(BlogHandler):
     def get(self):

@@ -20,7 +20,8 @@ class Post(ndb.Model):
     creator = ndb.StringProperty(required = True)
     last_modified = ndb.DateTimeProperty(auto_now = True)
     user_like_keys = ndb.StringProperty(repeated=True)
-    comments = ndb.StringProperty(repeated=True)
+    # pickleproperty for comments in the form of a list of tuples: [(user_urlsafekey, comment), ...]
+    comments = ndb.PickleProperty(repeated=True)
 
     @classmethod
     def query_post(cls, ancestor_key):
@@ -34,7 +35,6 @@ class Post(ndb.Model):
     def render_shortened(self):
         self._render_text = self.content.replace('\n', '<br>')
         return render_str("post_limited.html", p = self)
-
 
 class User(ndb.Model):
     """User profile to store the details of each user registered.
@@ -90,12 +90,39 @@ class User(ndb.Model):
             return True
 
     def follow_user(self, urlsafe_userkey):
-        if urlsafe_userkey in self.followed_user_keys:
+        if str(urlsafe_userkey) in self.followed_user_keys:
             return False
         else:
             self.followed_user_keys.append(str(urlsafe_userkey))
             self.put()
             return True
+
+    def is_liked_post(self, urlsafe_postkey, dislike=False):
+        """Takes a given urlsafe postkey and checks if the post key is within the users
+            liked/disliked_post_keys property, dependent on dislike keyword argument.
+        Args:
+            urlsafe_postkey (str): The corresponding post key, as a urlsafe str. 
+            dislike (boolean): Checks for liked post if true, and disliked if false,
+                                True by default. 
+        """
+        if dislike:
+            if str(urlsafe_postkey) in self.disliked_post_keys:
+                return True
+            else:
+                return False
+        else:
+            if str(urlsafe_postkey) in self.liked_post_keys:
+                return True
+            else:
+                return False
+
+    def is_followed_user(self, urlsafe_userkey):
+        """Takes a given urlsafe userkey and checks whether or not the current user
+            has the given userkey within its liked_post_keys property."""
+        if str(urlsafe_userkey) in self.followed_user_keys:
+            return True
+        else:
+            return False
 
 # User account functionality
 def make_salt(length=5):

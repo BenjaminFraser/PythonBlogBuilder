@@ -1,32 +1,3 @@
-{% extends "base.html" %}
-{% block content %}
-{% include "navbar.html" %}
-
-<main>
-<div id="welcome-box" class="parallax-container valign-wrapper">
-    <div class="section">
-        <div class="container" id="welcome-title">
-            <h2 id="welcome-header" class="center text-styled-title white-text">Welcome, {{username}}!</h2>
-        </div>
-        <div class="container">
-            <br><br>
-            <div class="row center">
-                <div class="col m4">
-                    <a href="/user/{{ session['id'] }}/newpost" class="btn btn-large waves-effect waves-light blue z-depth-5" name="new_post">Create a new post</a>
-                </div>
-                <div class="col m4">
-                    <a href="/user/{{ session['id'] }}" class="btn btn-large waves-effect waves-light green z-depth-5" name="my_posts">View my posts </a>
-                </div>
-                <div class="col m4">
-                    <a href="/blog" class="btn btn-large waves-effect waves-light orange z-depth-5" name="blog_home">View top blogs </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="parallax"><img src="/static/images/signup.jpg" alt="Unsplashed background img 2"></div>
-</div>
-</main>
-
 <footer class="page-footer blue darken-2">
   <div class="container">
     <div class="row">
@@ -57,4 +28,3 @@
     </div>
   </div>
 </footer>
-{% endblock %}

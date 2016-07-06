@@ -178,3 +178,7 @@ hr {
 .text-styled-title {
   font-family: "carter-one", Helvetica, sans-serif;
 }
+
+#welcome-header {
+  padding-bottom: 40px;
+}
