@@ -19,14 +19,14 @@
     <div class="parallax"><img src="/static/images/signup.jpg" alt="Unsplashed background img 2"></div>
 </div>
 <div class="user-posts-section">
-    <h1 class="text-styled-title center-align">Your recent posts</h1>
+    <h1 class="text-styled-title center-align">Recent posts</h1>
     <div class="user-posts-zone">
-        {% for column in user_posts|slice(4) %}
+        {% for column in user_posts|batch(2) %}
          <div class="row">
                 {% for post in column %}
                 <div class="col s12 m6">
-                  <div class="card blue-grey lighten-1">
-                    <div class="card-content white-text">
+                  <div class="card blue lighten-5">
+                    <div class="card-content black-text">
                       <span class="card-title text-styled-title">{{ post.subject }}</span>
                       <p>{{post.content[:100] | safe}}...</p>
                     </div>
@@ -39,7 +39,7 @@
                 {% endfor %}
           </div>
           {% endfor %}
-</div>
+      </div>
 <div class="container center-align" id="more-user-posts">
     <a href="#" class="btn-large waves-effect waves-light blue darken-2 z-depth-4">View all  <i class="fa fa-chevron-right"></i></a>
 </div>

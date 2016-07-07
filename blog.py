@@ -156,6 +156,13 @@ class PostPage(BlogHandler):
                                 'text' : 'This post has been disliked.',
                                 'image' : 'thumbs-up.jpg'
                                 }
+
+        # if GET request received for comment deletion, verify user and delete.
+        if self.request.get('delete_comment') and self.request.get('comment_user'):
+            if str(self.user.username) == str(self.request.get('comment_user')):
+                post.delete_comment(int(self.request.get('comment_num')), self.user.username)
+                post.put()
+
         if self.user:
             creator = True if self.user.username == post.creator else False
             user = User.fetch_by_id(self.user.key.id())
@@ -172,18 +179,27 @@ class PostPage(BlogHandler):
             self.error(404)
             return
         comment = self.request.get('comment')
+        commenter = self.request.get('comment-user')
         alert_message = None
-        creator = True if self.user.username == post.creator else False
-        user = User.fetch_by_id(self.user.key.id())
-        liked_post=True if user.is_liked_post(urlsafe_postkey) else False
-        if not comment:
-            alert_message = { 'title' : "Whoops!", 
-                              'text' : "You need to fill in the comment field!",
-                              'type' : "error" }
-            return self.render("permalink.html", post=post, creator=creator, 
-                                liked_post=liked_post, user_message=user_message)
+        if self.user:
+            creator = True if self.user.username == post.creator else False
+            user = User.fetch_by_id(self.user.key.id())
+            liked_post=True if user.is_liked_post(urlsafe_postkey) else False
+            if not comment or not commenter:
+                alert_message = { 'title' : "Whoops!", 
+                    'text' : "You need to fill in the comment field and must be logged in!",
+                    'type' : "error" }
+                return self.render("permalink.html", post=post, creator=creator, 
+                                liked_post=liked_post, alert_message=alert_message)
+            else:
+                post.comments.append((commenter, comment))
+                post.put()
+                self.redirect('/blog/{0}'.format(urlsafe_postkey))
         else:
-            post.comment.append()
+            alert_message = { 'title' : "Whoops!", 
+                    'text' : "You need to be logged in to comment!",
+                    'type' : "error" }
+            return self.render("permalink.html", post=post, alert_message=alert_message)
 
 class UserPosts(BlogHandler):
     """Displays all of a users created posts."""

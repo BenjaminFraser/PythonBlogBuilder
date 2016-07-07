@@ -36,6 +36,15 @@ class Post(ndb.Model):
         self._render_text = self.content.replace('\n', '<br>')
         return render_str("post_limited.html", p = self)
 
+    def delete_comment(self, comment_num, username):
+        """Takes a given comment number (int) and username, and deletes the 
+            relevant comment, providing the username matches the comment user."""
+        if username == self.comments[comment_num][0]:
+            del self.comments[comment_num]
+            return True
+        else:
+            return False
+
 class User(ndb.Model):
     """User profile to store the details of each user registered.
     Attributes:

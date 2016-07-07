@@ -40,7 +40,9 @@
       
       
                 {% for p in posts %}
-                    {{ p.render_shortened() | safe }}
+                    {% if loop.index <= 20 %}
+                        {{ p.render_shortened() | safe }}
+                    {% endif %}
                 {% endfor %}
         <div class="row">
           <a href="#" class="btn-large waves-effect waves-light blue darken-2">More posts  <i class="fa fa-chevron-right"></i></a>

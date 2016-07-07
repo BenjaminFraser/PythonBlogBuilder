@@ -2,7 +2,8 @@
 {% block content %}
 {% include "navbar.html" %}
 
-<div id="index-banner" class="parallax-container valign-wrapper">
+<main>
+<div id="post-header" class="parallax-container valign-wrapper">
     <div class="section no-pad-bot">
       <div class="container valign">
         <br><br>
@@ -17,11 +18,11 @@
 
       </div>
     </div>
-    <div class="parallax"><img src="/static/images/road.jpg" alt="Unsplashed background img 2"></div>
+    <div class="parallax"><img src="/static/images/blue_sky.jpg" alt="Unsplashed background img 2"></div>
 </div>
 
 
-<div class="container" id="startPosts">
+<div class="container" id="postArea">
   <br>
   <div class="row align-left">
         <div class="col s12 m10 offset-m1 l9 offset-l1">
@@ -39,7 +40,7 @@
     <div class="col s12 m10 offset-m1 l9 offset-l1">
       <p>{{post.content | safe }}</p> 
       <br>
-      <a class="btn-floating tooltipped btn waves-effect waves-light blue" data-position="bottom" data-delay="50" data-tooltip="Comment on this post"><i class="material-icons">chat_bubble_outline</i></a>
+      <a href="#modalComment" class="modal-trigger btn-floating tooltipped btn waves-effect waves-light blue" data-position="bottom" data-delay="50" data-tooltip="Comment on this post"><i class="material-icons">chat_bubble_outline</i></a>
 
       {% if creator %}
       <div class="right">
@@ -50,6 +51,52 @@
       {% endif %}
 
     </div>
+  </div>
+</div>
+
+{% if post.comments %}
+<div id="comments area" class ="container">
+  <ul class="collection">
+    {% for comment in post.comments %}
+    <li class="collection-item avatar">
+      <img src="/static/images/co2.jpg" alt="" class="circle">
+      <span class="title">{{ comment[0] }}</span>
+      <p>{{ comment[1] }}</p>
+      <a class="secondary-content" href='#'><i class="material-icons blue-text">thumb_up</i></a>
+      {% if session['username'] == comment[0] %}
+      <a class="right tooltipped" href="#" data-position="bottom" data-delay="50" data-tooltip="Edit comment"><i class="material-icons orange-text">mode_edit</i></a>
+      <a class="right tooltipped" href="/blog/{{ post.key.urlsafe() }}?delete_comment=yes&comment_user={{ comment[0] }}&comment_num={{loop.index0}}" data-position="bottom" data-delay="50" data-tooltip="Delete comment"><i class="material-icons red-text">delete</i></a>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+</main>
+
+<!--login modal for navbar-->
+<div id="modalComment" class="modal">
+  <div class="modal-content">
+    <h2 class="center-align text-styled-header">{{ session['username'] }}</h2>
+      <div class="divider"></div>
+      <form class="col s12" action="/blog/{{ post.key.urlsafe() }}" method="POST">
+        <div class="row">
+          <div class="input-field">
+            <input type="hidden" id="user" name="comment-user" value="{{ session['username'] }}"/>
+          </div>  
+          <div class="input-field col m10 offset-m1 blue-text ">
+            <i class="material-icons prefix">mode_edit</i>
+            <textarea id="comment-field" class="materialize-textarea" name="comment"></textarea>
+            <label for="comment">Comment</label>
+          </div>
+        </div>
+        <div class="divider"></div>
+          <p class="center-align">
+            <a href="#" class="btn btn-flat white modal-close">Cancel</a> &nbsp;
+            <button class="btn btn-large waves-effect waves-light" type="submit" name="submit">Post</button>
+          </p>
+      </form>
   </div>
 </div>
 
