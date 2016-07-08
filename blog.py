@@ -142,21 +142,14 @@ class PostPage(BlogHandler):
         user_message = None
         # if GET request received for post, which matches creator name, like post.
         if self.request.get('like_status') and self.request.get('target_user'):
-            if self.user and self.request.get('like_status') == "like":
-                user = User.fetch_by_id(self.user.key.id())
-                user.like_post(urlsafe_postkey)
-                user_message = {'title' : 'Thanks!',
-                                'text' : 'You liked this post.',
-                                'image' : 'thumbs-up.jpg'
-                                }
-            if self.user and self.request.get('like_status') == "dislike":
-                user = User.fetch_by_id(self.user.key.id())
-                user.dislike_post(urlsafe_postkey)
+            if self.user:
+                user_message = self.like_post(str(self.request.get('like_status')), 
+                                                int(self.user.key.id()), urlsafe_postkey)
+            else:
                 user_message = {'title' : 'Thanks!',
                                 'text' : 'This post has been disliked.',
-                                'image' : 'thumbs-up.jpg'
+                                'image' : 'thumbs-down.jpg'
                                 }
-
         # if GET request received for comment deletion, verify user and delete.
         if self.request.get('delete_comment') and self.request.get('comment_user'):
             if str(self.user.username) == str(self.request.get('comment_user')):
@@ -166,7 +159,8 @@ class PostPage(BlogHandler):
         if self.user:
             creator = True if self.user.username == post.creator else False
             user = User.fetch_by_id(self.user.key.id())
-            liked_post=True if user.is_liked_post(urlsafe_postkey) else False
+            liked_post='liked' if user.is_liked_post(urlsafe_postkey) else False
+            liked_post='disliked' if user.is_liked_post(urlsafe_postkey, dislike=True) else liked_post
             return self.render("permalink.html", post=post, creator=creator, 
                                 liked_post=liked_post, user_message=user_message)
         else:
@@ -184,7 +178,8 @@ class PostPage(BlogHandler):
         if self.user:
             creator = True if self.user.username == post.creator else False
             user = User.fetch_by_id(self.user.key.id())
-            liked_post=True if user.is_liked_post(urlsafe_postkey) else False
+            liked_post='liked' if user.is_liked_post(urlsafe_postkey) else False
+            liked_post='disliked' if user.is_liked_post(urlsafe_postkey, dislike=True) else liked_post
             if not comment or not commenter:
                 alert_message = { 'title' : "Whoops!", 
                     'text' : "You need to fill in the comment field and must be logged in!",
@@ -200,6 +195,34 @@ class PostPage(BlogHandler):
                     'text' : "You need to be logged in to comment!",
                     'type' : "error" }
             return self.render("permalink.html", post=post, alert_message=alert_message)
+
+    def like_post(self, like_status, user_id, urlsafe_postkey):
+        if self.user and int(self.user.key.id()) == int(user_id):
+            user = User.fetch_by_id(self.user.key.id())
+            if str(like_status) == "like":
+                user.like_post(urlsafe_postkey)
+                msg_text = 'You liked this post.'
+            elif str(like_status) == "unlike":
+                user.like_post(urlsafe_postkey, unlike=True)
+                msg_text = 'You no longer like this post.'
+            elif str(like_status) == "dislike":
+                user.dislike_post(urlsafe_postkey)
+                msg_text = 'This post has been disliked.'
+            elif str(like_status) == "undislike":
+                user.dislike_post(urlsafe_postkey, undislike=True)
+                msg_text = 'You no longer dislike this post.'
+            else:
+                msg_text = 'Something went wrong, sorry.'
+            user_message = {'title' : 'Thanks!',
+                            'text' : msg_text,
+                            'image' : 'thumbs-up.jpg'
+                            }
+            return user_message
+        else:
+            raise KeyError("The session user id does not match the user liking!")
+
+
+
 
 class UserPosts(BlogHandler):
     """Displays all of a users created posts."""

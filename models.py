@@ -75,10 +75,17 @@ class User(ndb.Model):
         return user
 
     def like_post(self, urlsafe_postkey, unlike=False):
+        """Takes a given urlsafe_postkey and places it into the User's liked_post_keys
+            property. If already liked, returns False, else returns True."""
         if not unlike:
+            # check if postkey is already in liked list, if so return False
             if urlsafe_postkey in self.liked_post_keys:
                 return False
             else:
+                # check to see if user has disliked post, remove dislike if so
+                if urlsafe_postkey in self.disliked_post_keys:
+                    self.dislike_post(urlsafe_postkey, undislike=True)
+                # add postkey to liked_post_keys and return True.
                 self.liked_post_keys.append(str(urlsafe_postkey))
                 self.put()
                 return True
@@ -91,12 +98,26 @@ class User(ndb.Model):
                 return False
 
     def dislike_post(self, urlsafe_postkey, undislike=False):
-        if urlsafe_postkey in self.disliked_post_keys:
-            return False
+        """Takes a given urlsafe_postkey and places it into the User's disliked_post_keys
+            property. If already disliked, returns False, else returns True."""
+        if not undislike:
+            if urlsafe_postkey in self.disliked_post_keys:
+                return False
+            else:
+                # check to see if user has liked post, remove like if so
+                if urlsafe_postkey in self.liked_post_keys:
+                    self.like_post(urlsafe_postkey, unlike=True)
+                # add postkey to disliked_post_keys and return True
+                self.disliked_post_keys.append(str(urlsafe_postkey))
+                self.put()
+                return True
         else:
-            self.disliked_post_keys.append(str(urlsafe_postkey))
-            self.put()
-            return True
+            if urlsafe_postkey in self.disliked_post_keys:
+                self.disliked_post_keys.remove(str(urlsafe_postkey))
+                self.put()
+                return True
+            else:
+                return False
 
     def follow_user(self, urlsafe_userkey):
         if str(urlsafe_userkey) in self.followed_user_keys:
