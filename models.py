@@ -8,40 +8,86 @@ from string import letters
 import webapp2
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
-                               autoescape = True)
+jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
+                               autoescape=True)
+
 
 class Post(ndb.Model):
-    subject = ndb.StringProperty(required = True)
+    subject = ndb.StringProperty(required=True)
     # text property, since it is unindexed and allows > 500 words
-    content = ndb.TextProperty(required = True)
+    content = ndb.TextProperty(required=True)
     # use auto_now_add = True to automatically create the created property
-    created = ndb.DateTimeProperty(auto_now_add = True)
-    creator = ndb.StringProperty(required = True)
-    last_modified = ndb.DateTimeProperty(auto_now = True)
+    created = ndb.DateTimeProperty(auto_now_add=True)
+    creator = ndb.StringProperty(required=True)
+    last_modified = ndb.DateTimeProperty(auto_now=True)
     user_like_keys = ndb.StringProperty(repeated=True)
+    user_dislike_keys = ndb.StringProperty(repeated=True)
     # pickleproperty for comments in the form of a list of tuples: [(user_urlsafekey, comment), ...]
     comments = ndb.PickleProperty(repeated=True)
 
     @classmethod
     def query_post(cls, ancestor_key):
-        """Allows simple querying of posts for an individual User (ancestor)"""
+        """Allows simple querying of posts for an individual User (ancestor)
+        Args:
+            ancestor_key (str): The user_key associated during post creation.
+        """
         return cls.query(ancestor=ancestor_key).order(-cls.last_modified)
 
     def render(self):
         self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post.html", p = self)
+        return render_str("post.html", p=self)
 
     def render_shortened(self):
         self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post_limited.html", p = self)
+        return render_str("post_limited.html", p=self)
 
     def delete_comment(self, comment_num, username):
         """Takes a given comment number (int) and username, and deletes the 
-            relevant comment, providing the username matches the comment user."""
+            relevant comment, providing the username matches the comment user.
+        Args:
+            comment_num (int): The row number of the comment to be deleted, as an int.
+            username (str): The User's username, as a string.
+        Returns:
+            True if comment is deleted, or False if the comment is not found.
+        """
         if username == self.comments[comment_num][0]:
             del self.comments[comment_num]
             return True
+        else:
+            return False
+
+    def process_like(self, user_object, like_status):
+        """Takes a given user_object entity and either adds or removes a user_key
+            to the user_like_keys or user_dislike_keys dependent on given like_status.
+        """
+        if like_status == 'like':
+            if user_object.key.id() in self.user_like_keys:
+                return False
+            else:
+                # add userkey to liked_user_keys and return True.
+                self.user_like_keys.append(user_object.key.urlsafe())
+                self.put()
+                return True
+        elif like_status == 'unlike':
+            if user_object.key.id() in self.user_like_keys:
+                self.user_like_keys.remove(str(user_object.key.urlsafe()))
+                return True
+            else:
+                return False
+        elif like_status == 'dislike':
+            if user_object.key.id() in self.user_dislike_keys:
+                return False
+            else:
+                # add userkey to disliked_user_keys and return True.
+                self.user_dislike_keys.append(user_object.key.urlsafe())
+                self.put()
+                return True
+        elif like_status == 'undislike':
+            if user_object.key.id() in self.user_dislike_keys:
+                self.user_dislike_keys.remove(str(user_object.key.urlsafe()))
+                return True
+            else:
+                return False
         else:
             return False
 
@@ -64,7 +110,7 @@ class User(ndb.Model):
         pass_hash = make_password_hash(username, password)
         return User(username=username, pass_hash=pass_hash, email=email)
 
-    @classmethod 
+    @classmethod
     def fetch_by_id(cls, user_id):
         user = ndb.Key(User, int(user_id)).get()
         return user
@@ -76,7 +122,11 @@ class User(ndb.Model):
 
     def like_post(self, urlsafe_postkey, unlike=False):
         """Takes a given urlsafe_postkey and places it into the User's liked_post_keys
-            property. If already liked, returns False, else returns True."""
+            property. If already liked, returns False, else returns True.
+        Args:
+            urlsafe_postkey (str): The requested post, as a urlsafe string.
+            unlike (bool): Keyword value, False if like chosen (default), True if unlike.
+        """
         if not unlike:
             # check if postkey is already in liked list, if so return False
             if urlsafe_postkey in self.liked_post_keys:
@@ -99,7 +149,11 @@ class User(ndb.Model):
 
     def dislike_post(self, urlsafe_postkey, undislike=False):
         """Takes a given urlsafe_postkey and places it into the User's disliked_post_keys
-            property. If already disliked, returns False, else returns True."""
+            property. If already disliked, returns False, else returns True.
+        Args:
+            urlsafe_postkey (str): The requested post, as a urlsafe string.
+            undislike (bool): Keyword value, False if dislike chosen (default), True if undislike.
+        """
         if not undislike:
             if urlsafe_postkey in self.disliked_post_keys:
                 return False
@@ -148,11 +202,15 @@ class User(ndb.Model):
 
     def is_followed_user(self, urlsafe_userkey):
         """Takes a given urlsafe userkey and checks whether or not the current user
-            has the given userkey within its liked_post_keys property."""
+            has the given userkey within its liked_post_keys property.
+        Args:
+            urlsafe_userkey (str): The corresponding post key, as a urlsafe str.
+        """
         if str(urlsafe_userkey) in self.followed_user_keys:
             return True
         else:
             return False
+
 
 # User account functionality
 def make_salt(length=5):
@@ -163,7 +221,8 @@ def make_salt(length=5):
     Returns:
         The generated salt value, as a string.
     """
-    return ''.join(random.choice(string.letters+string.digits) for x in range(length))
+    return ''.join(random.choice(string.letters + string.digits) for x in range(length))
+
 
 def make_password_hash(name, password, salt=None):
     """Creates a secure password hash given a User name and password given as string arguments.
@@ -181,6 +240,7 @@ def make_password_hash(name, password, salt=None):
     h = hashlib.sha256(str(name) + str(password) + salt).hexdigest()
     return "{0},{1}".format(h, salt)
 
+
 def valid_user_password(name, password, hash_val):
     """Takes a Users name, password and database hash_val and verifies that the user login
         details were valid.
@@ -194,12 +254,12 @@ def valid_user_password(name, password, hash_val):
     salt = hash_val.split(",")[1]
     return True if make_password_hash(name, password, salt) == hash_val else False
 
+
 def render_str(template, **params):
     t = jinja_env.get_template(template)
     return t.render(params)
 
-
-#class Theme(ndb.Model):
-#    layout_style = ndb.IntegerProperty()
-#    background_image = ndb.PickleProperty()
-#    text_colour = ndb.IntegerProperty()
+    # class Theme(ndb.Model):
+    #    layout_style = ndb.IntegerProperty()
+    #    background_image = ndb.PickleProperty()
+    #    text_colour = ndb.IntegerProperty()
