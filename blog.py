@@ -1,10 +1,4 @@
 import os
-import re
-import string
-import random
-import hashlib
-import hmac
-from string import letters
 import logging
 
 import webapp2
@@ -62,12 +56,14 @@ def render_post(response, post):
     response.out.write(post.content)
 
 
-# BlogHandler class to carry out the methods required by our blog.
 class BlogHandler(webapp2.RequestHandler):
+    """ A Bloghandler class to carry out the methods required by our blog."""
+
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
 
-    def render_str(self, template, **params):
+    @staticmethod
+    def render_str(template, **params):
         return render_str(template, **params)
 
     def render(self, template, **kw):
@@ -117,7 +113,8 @@ class BlogHandler(webapp2.RequestHandler):
         if self.user:
             self.set_session(self.user)
 
-    def set_session(self, user=None):
+    @staticmethod
+    def set_session(user=None):
         """A function that passes general user information to the session global variable 
             within the jinja2 environment, so that it is available within templates.
         Args:
@@ -130,13 +127,15 @@ class BlogHandler(webapp2.RequestHandler):
                                                  'username': user.username,
                                                  'email': user.email})
 
-    def fetch_session_notification(self):
+    @staticmethod
+    def fetch_session_notification():
         """Copies the current notification (if any) from the jinja global session 
             variable, sets the global to None, and then returns the message."""
         user_message = jinja_env.globals['session'].get('notification')
         # reset the session notification global value to None.
         jinja_env.globals['session']['notification'] = None
         return user_message
+
 
 class MainPage(BlogHandler):
     def get(self):
@@ -150,7 +149,6 @@ class BlogFront(BlogHandler):
         self.render('front.html', posts=posts, user_message=user_message)
 
 
-# TO - DO : ensure a user cannot both like and dislike a post at the same time.
 class PostPage(BlogHandler):
     def get(self, urlsafe_postkey):
         post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
@@ -246,6 +244,7 @@ class PostPage(BlogHandler):
         else:
             raise KeyError("The session user id does not match the user liking!")
 
+
 class UserPosts(BlogHandler):
     """Displays all of a users created posts."""
 
@@ -290,7 +289,6 @@ class NewPost(BlogHandler):
                         content=content, alert_message=alert_message)
 
 
-# exceptions to be added to this class.
 class EditPost(BlogHandler):
     def get(self, urlsafe_postkey):
         if self.user:
@@ -321,7 +319,7 @@ class EditPost(BlogHandler):
         else:
             raise KeyError("A User who is not the creator cannot edit a post.")
 
-# exceptions to be added to this class
+
 class DeletePost(BlogHandler):
     def get(self, urlsafe_postkey):
         if self.user:
@@ -354,18 +352,6 @@ class DeletePost(BlogHandler):
                 raise KeyError("A User who is not the creator cannot delete a post.")
         else:
             self.redirect("/login")
-
-class Rot13(BlogHandler):
-    def get(self):
-        self.render('rot13-form.html')
-
-    def post(self):
-        rot13 = ''
-        text = self.request.get('text')
-        if text:
-            rot13 = text.encode('rot13')
-
-        self.render('rot13-form.html', text=rot13)
 
 
 class Signup(BlogHandler):
@@ -502,32 +488,7 @@ class Welcome(BlogHandler):
         self.render('welcome.html', username=user.username)
 
 
-class FizzBuzzHandler(BlogHandler):
-    def get(self):
-        n = self.request.get('n', 0)
-        n = n and int(n)
-        self.render('fizzbuzz.html', n=n)
-
-
-class rot13Translator(BlogHandler):
-    def get(self):
-        self.render('rot13.html')
-
-    def post(self):
-        final_text = ''
-        text = self.request.get('text')
-        if text:
-            charset = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz'
-            transformed = charset[26:] + charset[:26]
-            char = lambda x: transformed[charset.find(x)] if charset.find(x) > -1 else x
-            final_text = ''.join(char(x) for x in text)
-        self.render('rot13.html', text=final_text)
-
-
 app = webapp2.WSGIApplication([('/', MainPage),
-                               ('/FizzBuzz', FizzBuzzHandler),
-                               ('/rot13', rot13Translator),
-                               ('/unit2/rot13', Rot13),
                                ('/signup', Signup),
                                ('/login', Login),
                                ('/logout', Logout),
