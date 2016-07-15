@@ -4,7 +4,6 @@ import jinja2
 import os
 import random
 import string
-from string import letters
 import webapp2
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -59,6 +58,10 @@ class Post(ndb.Model):
     def process_like(self, user_object, like_status):
         """Takes a given user_object entity and either adds or removes a user_key
             to the user_like_keys or user_dislike_keys dependent on given like_status.
+
+        Args:
+            user_object: An ndb.class User entity object for the selected user.
+            like_status: A boolean variable to indicate the like status:
         """
         if like_status == 'like':
             if user_object.key.id() in self.user_like_keys:
@@ -90,6 +93,7 @@ class Post(ndb.Model):
                 return False
         else:
             return False
+
 
 class User(ndb.Model):
     """User profile to store the details of each user registered.

@@ -247,9 +247,8 @@ class PostPage(BlogHandler):
 
 class UserPosts(BlogHandler):
     """Displays all of a users created posts."""
-
     def get(self, user_id):
-        if self.user:
+        if self.user and int(self.user.key.id()) == int(user_id):
             user_posts = Post.query_post(self.user.key).fetch()
             # fetch all user liked/disliked posts using the User liked_post_keys string list.
             liked_keys = [ndb.Key(urlsafe=i) for i in self.user.liked_post_keys[-10:]]
@@ -290,6 +289,8 @@ class NewPost(BlogHandler):
 
 
 class EditPost(BlogHandler):
+    """BlogHandler
+    """
     def get(self, urlsafe_postkey):
         if self.user:
             post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
