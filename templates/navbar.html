@@ -2,7 +2,7 @@
     <div class="navbar-fixed">
     <nav class="blue darken-2">
         <div class="nav-wrapper container">
-            <a href="/blog" class="brand-logo text-styled-title"><i class="material-icons left">comment</i>&nbsp;The Big Borogu</a>
+            <a href="/blog" class="brand-logo text-styled-title"><i class="material-icons left">comment</i>&nbsp;The Big Burogu</a>
             <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">reorder</i></a>
             <ul class="right hide-on-med-and-down text-styled-title">
                 {% if session['username'] %}
@@ -26,9 +26,15 @@
                         <input class="white-text" id="search" type="search" placeholder="search">
                     </a>
                 </li>
+                {% if session['username'] %}
+                <li><a class="blue darken-2 white-text waves-effect" href="/user/{{ session['id'] }}"><i class="material-icons left">message</i>Your Posts</a></li>
+                <li><a class="blue darken-2 white-text waves-effect" href="#"><i class="material-icons left">supervisor_account</i>Your Account</a></li>
+                <li><a class="blue darken-2 white-text waves-effect" href="/user/{{ session['id'] }}/newpost"><i class="material-icons left">mode_edit</i>New Post</a></li>
+                {% else %}
                 <li><a href="/login" class="modal-trigger white-text"><i class="material-icons left">perm_identity</i>Login</a></li>
                 <li><a href="/signup" class="white-text"><i class="material-icons left">supervisor_account</i>Register</a></li>
                 <li><a href="#" class="white-text"><i class="material-icons left">live_help</i>Help</a></li>
+                {% endif %}
             </ul>
         </div>
     </nav>
