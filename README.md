@@ -88,6 +88,7 @@ This project provides you with the following required directory and files:
 - Create a secure login system by implementing OAuth 2.0 and G+/Facebook.
 - Allow customization of personal user pages, through creation of a template entity, which stores the users personal configurations for their blog(s).
 - Create a personalised 404 error page, for graceful display of errors to the user.
+- Allow user image uploads, so that post content and images for each post are actually related to the user, rather than a generic default image.
 
 --------
 
