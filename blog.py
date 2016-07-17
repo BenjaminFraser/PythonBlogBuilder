@@ -120,11 +120,10 @@ class BlogHandler(webapp2.RequestHandler):
         user_id = self.get_verified_cookie('user_id')
         # set self.user to the user, provided it exists and is valid
         self.user = user_id and User.fetch_by_id(int(user_id))
-        if self.user:
-            self.set_session(self.user)
+        self.set_session(self.user)
+        
 
-    @staticmethod
-    def set_session(user=None):
+    def set_session(self, user=None):
         """A function that passes general user information to the session global variable 
             within the jinja2 environment, so that it is available within templates.
         Args:
