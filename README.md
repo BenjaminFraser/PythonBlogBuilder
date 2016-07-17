@@ -87,6 +87,7 @@ This project provides you with the following required directory and files:
 - Convert the application to Flask, for efficient url Routeing and easing of trivial operations, such as global session variables and security enhancement.
 - Create a secure login system by implementing OAuth 2.0 and G+/Facebook.
 - Allow customization of personal user pages, through creation of a template entity, which stores the users personal configurations for their blog(s).
+- Create a personalised 404 error page, for graceful display of errors to the user.
 
 --------
 

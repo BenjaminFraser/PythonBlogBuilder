@@ -93,10 +93,18 @@ class BlogHandler(webapp2.RequestHandler):
         return cookie_val and verify_secure_val(cookie_val)
 
     def logout(self):
+        """Sets the secure Set-Cookie header to an empty user_id, so it is no longer
+            associated with user.
+        """
         self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
         self.set_session()
 
     def login(self, user_id_str):
+        """Sets the secure Set-Cookie header to the associated user_id, so the user is
+            recognised by the application.
+        Args:
+            user_id_str: The user id string of the user to be logged in.
+        """
         self.set_cookie('user_id', user_id_str)
 
     def initialize(self, *args, **kwargs):
@@ -138,11 +146,13 @@ class BlogHandler(webapp2.RequestHandler):
 
 
 class MainPage(BlogHandler):
+    """Displays the main introduction page for The Big Borogu."""
     def get(self):
         self.render('introduction.html')
 
 
 class BlogFront(BlogHandler):
+    """Displays a page that lists the 10 latest posts on The Big Borogu."""
     def get(self):
         posts = ndb.gql("select * from Post order by created desc limit 10")
         user_message = self.fetch_session_notification()
@@ -150,6 +160,9 @@ class BlogFront(BlogHandler):
 
 
 class PostPage(BlogHandler):
+    """Displays the chosen post, with functionality for liking, disliking, user
+        following, post deletion and editing (only user creator) and post commenting.
+    """
     def get(self, urlsafe_postkey):
         post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
         if not post:
@@ -264,6 +277,8 @@ class UserPosts(BlogHandler):
 
 
 class NewPost(BlogHandler):
+    """Blog post creation page, whereby a User can create their own rich text blog post."""
+
     def get(self, user_id):
         if self.user and int(self.user.key.id()) == int(user_id):
             self.render("newpost.html")
@@ -289,8 +304,9 @@ class NewPost(BlogHandler):
 
 
 class EditPost(BlogHandler):
-    """BlogHandler
-    """
+    """A page for editing a created blog post, provided the user is the original
+        creator."""
+
     def get(self, urlsafe_postkey):
         if self.user:
             post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
@@ -322,6 +338,9 @@ class EditPost(BlogHandler):
 
 
 class DeletePost(BlogHandler):
+    """A page for deletion of the chosen blog post, provided the logged in user is
+        the original post creator."""
+
     def get(self, urlsafe_postkey):
         if self.user:
             post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
@@ -356,6 +375,10 @@ class DeletePost(BlogHandler):
 
 
 class Signup(BlogHandler):
+    """A signup page for user registration, which performs verification and validation
+        on the user input parameters. Returns an error notification if not formatted
+        correctly."""
+
     def get(self):
         # obtain any user_messages passed into the notification var, and reset to None.
         alert_message = jinja_env.globals['session'].get('notification')
@@ -407,14 +430,14 @@ class Signup(BlogHandler):
             user = User.new_user(username=username, password=password, email=email)
             user.put()
             self.login(str(user.key.id()))
-            # id_str = str(user.key.id())
-            # self.set_cookie('user_id', str(user.key.id()))
-            # self.response.headers.add_header('Set-Cookie',
-            #                                'user_id={0}'.format(make_secure_val(id_str)))
             self.redirect('/welcome')
 
 
 class Login(BlogHandler):
+    """A page for existing user login. Validates the input user credentials against
+        those stored within Datastore and returns a notification message, dependent
+        on successful login or error."""
+
     def get(self):
         self.render('login.html')
 
@@ -451,18 +474,17 @@ class Login(BlogHandler):
                              'type': "error"}
             self.render('login.html', alert_message=alert_message, **params)
         else:
-            # simulate login by setting the user_id cookie to the users id and redirect to welcome.
-            # self.set_cookie('user_id', str(user.key.id()))
-
             # log the user in using the BlogHandler method login:
             self.login(str(user.key.id()))
             self.redirect('/welcome')
 
 
 class Logout(BlogHandler):
+    """ A BlogHandler class for User logout. Logs the current user out and returns a
+        notification message alerting the user to successful logout."""
+
     def get(self):
         user_id = self.get_verified_cookie('user_id')
-        # self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
         self.logout()
         # obtain any user_messages passed into the notification var, and reset to None.
         jinja_env.globals['session']['notification'] = {'title': "Your logout was successful!",
@@ -472,11 +494,10 @@ class Logout(BlogHandler):
 
 
 class Welcome(BlogHandler):
+    """ A welcome page for the logged in User, which acts as a portal to other applcation
+        features, such as post viewing and account settings."""
+
     def get(self):
-        # user_id_hash = self.request.cookies.get('user_id')
-        # if not user_id_hash:
-        # self.redirect('/signup')
-        # user_id = verify_secure_val(user_id_hash)
         # ensure the user_id secure cookie has not been tampered with and it exists
         user_id = self.get_verified_cookie('user_id')
         # ensure the user_id secure cookie has not been tampered with and it exists
