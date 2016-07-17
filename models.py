@@ -12,6 +12,18 @@ jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
 
 
 class Post(ndb.Model):
+    """Post entity to store the details of each post created.
+    Attributes:
+        subject: The subject of the post (str).
+        content: The main text of the post (str).
+        created: the date-time at which the post was created.
+        creator: The username corresponding to the creator of the post.
+        last_modified: The datetime at which the post was last modified.
+        user_like_keys: A list of strings corresponding to User's that have liked. 
+        user_dislike_keys: A list of strings corresponding to User's that have disliked.
+        comments: pickleproperty for comments in the form of a list of 
+                  tuples: [(user_urlsafekey, comment), ...]
+    """
     subject = ndb.StringProperty(required=True)
     # text property, since it is unindexed and allows > 500 words
     content = ndb.TextProperty(required=True)
@@ -100,6 +112,13 @@ class User(ndb.Model):
     Attributes:
         name: The name of the user (str).
         email: The email address of the user (str).
+        pass_hash: The securely stored hash of a user's password (str).
+        liked_post_keys: A list of strings corresponding to Post's the user 
+                        has liked.
+        disliked_post_keys: A list of strings corresponding to Post's the user 
+                        has disliked.
+        followed_user_keys: A list of key strings, corresponding to followed users.
+        followers: The number of users who follow the user (int).
     """
     username = ndb.StringProperty(required=True)
     pass_hash = ndb.StringProperty(required=True)
@@ -177,13 +196,26 @@ class User(ndb.Model):
             else:
                 return False
 
-    def follow_user(self, urlsafe_userkey):
-        if str(urlsafe_userkey) in self.followed_user_keys:
-            return False
+    def follow_user(self, urlsafe_userkey, unfollow=False):
+        """Takes a given urlsafe_userkey and places it into the User's followed_user_keys
+            property. If already followed, returns False, else returns True. 
+        Args:
+            urlsafe_userkey (str): The requested user, as a urlsafe string.
+            unfollow (bool): Keyword value, False if follow chosen (default), True if unfollow.
+        """
+        if not unfollow:
+            if str(urlsafe_userkey) in self.followed_user_keys:
+                return False
+            else:
+                self.followed_user_keys.append(str(urlsafe_userkey))
+                self.put()
+                return True
         else:
-            self.followed_user_keys.append(str(urlsafe_userkey))
-            self.put()
-            return True
+            if str(urlsafe_userkey) in self.followed_user_keys:
+                self.followed_user_keys.remove(str(urlsafe_userkey))
+                return True
+            else:
+                return False
 
     def is_liked_post(self, urlsafe_postkey, dislike=False):
         """Takes a given urlsafe postkey and checks if the post key is within the users
