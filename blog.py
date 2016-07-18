@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os 
+import os
 import logging
 
 import webapp2
@@ -121,9 +121,9 @@ class BlogHandler(webapp2.RequestHandler):
         # set self.user to the user, provided it exists and is valid
         self.user = user_id and User.fetch_by_id(int(user_id))
         self.set_session(self.user)
-        
 
-    def set_session(self, user=None):
+    @staticmethod
+    def set_session(user=None):
         """A function that passes general user information to the session global variable 
             within the jinja2 environment, so that it is available within templates.
         Args:
@@ -148,12 +148,14 @@ class BlogHandler(webapp2.RequestHandler):
 
 class MainPage(BlogHandler):
     """Displays the main introduction page for The Big Borogu."""
+
     def get(self):
         self.render('introduction.html')
 
 
 class BlogFront(BlogHandler):
     """Displays a page that lists the 10 latest posts on The Big Borogu."""
+
     def get(self):
         posts = ndb.gql("select * from Post order by created desc limit 10")
         user_message = self.fetch_session_notification()
@@ -164,10 +166,11 @@ class PostPage(BlogHandler):
     """Displays the chosen post, with functionality for liking, disliking, user
         following, post deletion and editing (only user creator) and post commenting.
     """
+
     def get(self, urlsafe_postkey):
         post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
         if not post:
-            self.error(404)
+            self.render("404_error.html")
             return
         user_message = self.fetch_session_notification()
         # if GET request received for post, which matches creator name, like post.
@@ -206,7 +209,7 @@ class PostPage(BlogHandler):
     def post(self, urlsafe_postkey):
         post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
         if not post:
-            self.error(404)
+            self.render("404_error.html")
             return
 
         alert_message = None
@@ -278,6 +281,7 @@ class PostPage(BlogHandler):
 
 class UserPosts(BlogHandler):
     """Displays all of a users created posts."""
+
     def get(self, user_id):
         if self.user and int(self.user.key.id()) == int(user_id):
             user_posts = Post.query_post(self.user.key).fetch()
@@ -343,7 +347,7 @@ class EditPost(BlogHandler):
     def post(self, urlsafe_postkey):
         post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
         if not post:
-            self.error(404)
+            self.render("404_error.html")
             return
         if self.user and self.user.username == post.creator:
             new_subject = self.request.get('subject')

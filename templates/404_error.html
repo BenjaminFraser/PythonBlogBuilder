@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "navbar.html" %}
+
+<div id="index-banner" class="parallax-container valign-wrapper">
+    <div class="section no-pad-bot">
+      <div class="container valign">
+        <br><br>
+        <div class="row center">
+          <h1 class="light white-text text-darken-2">Whoops!</h1>
+        </div>
+        <div class="row center">
+          <h3 class="light white-text text-darken-2">The page you're looking for could not be found! Please check the URL and try again!</h3>
+        </div>
+        <br><br>
+
+      </div>
+    </div>
+    <div class="parallax"><img src="/static/images/upset_image.jpg" alt="Unsplashed background img 2"></div>
+</div>
+
+{% include "footer.html" %}
+{% endblock %}
