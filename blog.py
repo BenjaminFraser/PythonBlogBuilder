@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os
+import os 
 import logging
 
 import webapp2
@@ -208,29 +208,46 @@ class PostPage(BlogHandler):
         if not post:
             self.error(404)
             return
-        comment = self.request.get('comment')
-        commenter = self.request.get('comment-user')
+
         alert_message = None
-        if self.user:
-            creator = True if self.user.username == post.creator else False
-            user = User.fetch_by_id(self.user.key.id())
-            liked_post = 'liked' if user.is_liked_post(urlsafe_postkey) else False
-            liked_post = 'disliked' if user.is_liked_post(urlsafe_postkey, dislike=True) else liked_post
-            if not comment or not commenter:
-                alert_message = {'title': "Whoops!",
-                                 'text': "You need to fill in the comment field and must be logged in!",
-                                 'type': "error"}
-                return self.render("permalink.html", post=post, creator=creator,
-                                   liked_post=liked_post, alert_message=alert_message)
+        # if POST request for an initial comment is received, validate user and comment.
+        if self.request.get('comment'):
+            comment = self.request.get('comment')
+            commenter = self.request.get('comment-user')
+            if self.user:
+                creator = True if self.user.username == post.creator else False
+                user = User.fetch_by_id(self.user.key.id())
+                liked_post = 'liked' if user.is_liked_post(urlsafe_postkey) else False
+                liked_post = 'disliked' if user.is_liked_post(urlsafe_postkey, dislike=True) else liked_post
+                if not comment or not commenter:
+                    alert_message = {'title': "Whoops!",
+                                     'text': "You need to fill in the comment field and must be logged in!",
+                                     'type': "error"}
+                    return self.render("permalink.html", post=post, creator=creator,
+                                       liked_post=liked_post, alert_message=alert_message)
+                else:
+                    post.comments.append((commenter, comment))
+                    post.put()
+                    self.redirect('/blog/{0}'.format(urlsafe_postkey))
             else:
-                post.comments.append((commenter, comment))
-                post.put()
-                self.redirect('/blog/{0}'.format(urlsafe_postkey))
-        else:
-            alert_message = {'title': "Whoops!",
-                             'text': "You need to be logged in to comment!",
-                             'type': "error"}
-            return self.render("permalink.html", post=post, alert_message=alert_message)
+                alert_message = {'title': "Whoops!",
+                                 'text': "You need to be logged in to comment!",
+                                 'type': "error"}
+                return self.render("permalink.html", post=post, alert_message=alert_message)
+
+        # if POST request received for comment update, verify user and update accordingly.
+        if self.request.get('edit-comment') and self.request.get('comment-user'):
+            if self.user:
+                if str(self.user.username) == str(self.request.get('comment-user')):
+                    comment = str(self.request.get('edit-comment'))
+                    post.edit_comment(int(self.request.get('comment-num')), self.user.username, comment)
+                    post.put()
+                    self.redirect('/blog/{0}'.format(urlsafe_postkey))
+            else:
+                alert_message = {'title': "Whoops!",
+                                 'text': "You need to be logged in as the correct user to comment!",
+                                 'type': "error"}
+                return self.render("permalink.html", post=post, alert_message=alert_message)
 
     def like_post(self, like_status, user_id, urlsafe_postkey):
         if self.user and int(self.user.key.id()) == int(user_id):
@@ -290,12 +307,16 @@ class NewPost(BlogHandler):
         subject = self.request.get('subject')
         content = self.request.get('content')
 
+        # ensure that both subject and content have values, alert user if not.
         if subject and content:
-            p = Post(parent=self.user.key, subject=subject,
-                     content=content, creator=self.user.username)
-            p.put()
-            # create a urlsafe version of the key and pass into URL.
-            self.redirect('/blog/%s' % str(p.key.urlsafe()))
+            if self.user:
+                p = Post(parent=self.user.key, subject=subject,
+                         content=content, creator=self.user.username)
+                p.put()
+                # create a urlsafe version of the key and pass into URL.
+                self.redirect('/blog/%s' % str(p.key.urlsafe()))
+            else:
+                self.redirect("/login")
         else:
             alert_message = {'title': "Whoops!",
                              'text': "You need to fill in both subject and content!",

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from google.appengine.ext import ndb
 import hashlib
-import jinja2
+import jinja2 
 import os
 import random
 import string
@@ -65,6 +65,23 @@ class Post(ndb.Model):
         """
         if username == self.comments[comment_num][0]:
             del self.comments[comment_num]
+            return True
+        else:
+            return False
+
+    def edit_comment(self, comment_num, username, comment):
+        """Takes a given comment number (int), username and comment and edits the 
+            selected comment, providing the username matches the comment user.
+        Args:
+            comment_num (int): The row number of the comment to be deleted, as an int.
+            username (str): The User's username, as a string.
+            comment (str): The updated comment to replace the old.
+        Returns:
+            True if comment is updated, or False if the comment is not found.
+        """
+        if username == self.comments[comment_num][0]:
+            new_comment = (username, comment)
+            self.comments[comment_num] = new_comment
             return True
         else:
             return False

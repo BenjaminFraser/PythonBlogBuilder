@@ -68,10 +68,37 @@
       <p>{{ comment[1] }}</p>
       <a class="secondary-content" href='#'><i class="material-icons blue-text">thumb_up</i></a>
       {% if session['username'] == comment[0] %}
-      <a class="right tooltipped" href="#" data-position="bottom" data-delay="50" data-tooltip="Edit comment"><i class="material-icons orange-text">mode_edit</i></a>
+      <a class="modal-trigger right tooltipped" href="#modalCommentEdit" data-position="bottom" data-delay="50" data-tooltip="Edit comment"><i class="material-icons orange-text">mode_edit</i></a>
       <a class="right tooltipped" href="/blog/{{ post.key.urlsafe() }}?delete_comment=yes&comment_user={{ comment[0] }}&comment_num={{loop.index0}}" data-position="bottom" data-delay="50" data-tooltip="Delete comment"><i class="material-icons red-text">delete</i></a>
       {% endif %}
     </li>
+    <!--comment modal for commenting on post-->
+    <div id="modalCommentEdit" class="modal">
+      <div class="modal-content">
+        <h2 class="center-align text-styled-header">{{ session['username'] }}</h2>
+          <div class="divider"></div>
+          <form class="col s12" action="/blog/{{ post.key.urlsafe() }}" method="POST">
+            <div class="row">
+              <div class="input-field">
+                <input type="hidden" id="user" name="comment-user" value="{{ session['username'] }}"/>
+              </div>
+              <div class="input-field">
+                <input type="hidden" id="comment-number" name="comment-num" value="{{loop.index0}}"/>
+              </div>    
+              <div class="input-field col m10 offset-m1 blue-text ">
+                <i class="material-icons prefix">mode_edit</i>
+                <textarea id="comment-edit" class="materialize-textarea" name="edit-comment">{{ comment[1] }}</textarea>
+                <label for="comment">Comment</label>
+              </div>
+            </div>
+            <div class="divider"></div>
+              <p class="center-align">
+                <a href="#" class="btn btn-flat white modal-close">Cancel</a> &nbsp;
+                <button class="btn btn-large waves-effect waves-light" type="submit" name="submit">Post</button>
+              </p>
+          </form>
+      </div>
+    </div>
     {% endfor %}
   </ul>
 </div>
@@ -79,7 +106,7 @@
 
 </main>
 
-<!--login modal for navbar-->
+<!--comment modal for commenting on post-->
 <div id="modalComment" class="modal">
   <div class="modal-content">
     <h2 class="center-align text-styled-header">{{ session['username'] }}</h2>
