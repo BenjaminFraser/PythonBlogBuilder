@@ -72,7 +72,7 @@
       <a class="right tooltipped" href="/blog/{{ post.key.urlsafe() }}?delete_comment=yes&comment_user={{ comment[0] }}&comment_num={{loop.index0}}" data-position="bottom" data-delay="50" data-tooltip="Delete comment"><i class="material-icons red-text">delete</i></a>
       {% endif %}
     </li>
-    <!--comment modal for commenting on post-->
+    <!--comment modal for editing comment post-->
     <div id="modalCommentEdit" class="modal">
       <div class="modal-content">
         <h2 class="center-align text-styled-header">{{ session['username'] }}</h2>

@@ -170,6 +170,7 @@ class PostPage(BlogHandler):
     def get(self, urlsafe_postkey):
         post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
         if not post:
+            self.error(404)
             self.render("404_error.html")
             return
         user_message = self.fetch_session_notification()
@@ -209,6 +210,7 @@ class PostPage(BlogHandler):
     def post(self, urlsafe_postkey):
         post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
         if not post:
+            self.error(404)
             self.render("404_error.html")
             return
 
@@ -347,6 +349,7 @@ class EditPost(BlogHandler):
     def post(self, urlsafe_postkey):
         post = ndb.Key(urlsafe=str(urlsafe_postkey)).get()
         if not post:
+            self.error(404)
             self.render("404_error.html")
             return
         if self.user and self.user.username == post.creator:

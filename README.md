@@ -1,4 +1,4 @@
-# Full Stack Nanodegree Project 2 - Create your  blog - The Big Borogu
+#  Create a blog application built with GAE - The Big Borogu
 
 ## Set-Up Instructions:
 1.  Update the value of application in app.yaml to the app ID you have registered in the App Engine admin console, which you would like to use to host your instance of this sample.
@@ -87,7 +87,6 @@ This project provides you with the following required directory and files:
 - Convert the application to Flask, for efficient url Routeing and easing of trivial operations, such as global session variables and security enhancement.
 - Create a secure login system by implementing OAuth 2.0 and G+/Facebook.
 - Allow customization of personal user pages, through creation of a template entity, which stores the users personal configurations for their blog(s).
-- Create a personalised 404 error page, for graceful display of errors to the user.
 - Allow user image uploads, so that post content and images for each post are actually related to the user, rather than a generic default image.
 
 --------
@@ -98,6 +97,6 @@ This project provides you with the following required directory and files:
 Benjamin Fraser
 
 Credit to Udacity for the skeleton Python Google App Engine code.
-Built using Python and Google App Engine. Credit to Materialize framework for the HTML and CSS frontend of the application.
+Built using Python and Google App Engine. Credit to Materialize framework for the HTML and CSS frontend of the application, Quill.js for the rich text editor functionality and SweetAlert for the custom JS user alerts.
 
 --------
